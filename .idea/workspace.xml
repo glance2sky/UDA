@@ -4,23 +4,322 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/SEG.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/datasets/cityscapes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/datasets/coco-stuff164k.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/models/mib_b5.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/models/san_vit-b16.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/_base_/schedules/schedule_160k.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/model/san-vit-b16_coco-stuff164k-640x640.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mix_transformer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/daformer_head.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="origin SAN on coco_stuff datasets">
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/_base_/models/daformer_conv1_mitb5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/.mim/configs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/.mim/dataset-index.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/.mim/model-index.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/.mim/tools" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/apis/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/apis/inference.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/apis/mmseg_inferencer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/apis/remote_sense_inferencer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/apis/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/datasets/loveda.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/datasets/potsdam.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/default_runtime.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_160k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_20k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_240k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_25k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_320k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_40k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/configs/_base_/schedules/schedule_80k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/ade.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/basesegdataset.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/bdd100k.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/chase_db1.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/cityscapes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/coco_stuff.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/dark_zurich.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/decathlon.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/drive.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/dsdl.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/hrf.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/hsi_drive.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/isaid.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/isprs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/levir.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/lip.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/loveda.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/mapillary.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/night_driving.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/nyu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/pascal_context.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/potsdam.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/refuge.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/stare.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/synapse.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/transforms/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/transforms/formatting.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/transforms/loading.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/transforms/transforms.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/voc.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/hooks/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/hooks/visualization_hook.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/optimizers/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/optimizers/force_default_constructor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/optimizers/layer_decay_optimizer_constructor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/schedulers/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/engine/schedulers/poly_ratio_scheduler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/evaluation/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/evaluation/metrics/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/evaluation/metrics/citys_metric.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/evaluation/metrics/depth_metric.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/assigners/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/assigners/base_assigner.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/assigners/hungarian_assigner.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/assigners/match_cost.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/beit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/bisenetv1.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/bisenetv2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/cgnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/ddrnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/erfnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/fast_scnn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/hrnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/icnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mae.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mobilenet_v2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mobilenet_v3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/mscan.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/pidnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/resnest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/resnet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/resnext.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/stdc.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/swin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/timm_backbone.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/twins.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/unet.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/vit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/backbones/vpd.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/builder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/data_preprocessor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/ann_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/apc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/cascade_decode_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/cc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/da_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/ddr_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/decode_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/dm_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/dnl_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/dpt_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/ema_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/enc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/fcn_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/fpn_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/gc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/ham_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/isa_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/knet_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/lraspp_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/mask2former_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/maskformer_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/nl_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/ocr_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/pid_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/point_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/psa_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/psp_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/san_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/segformer_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/segmenter_mask_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/sep_aspp_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/sep_fcn_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/setr_mla_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/setr_up_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/stdc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/uper_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/vpd_depth_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/accuracy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/boundary_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/cross_entropy_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/dice_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/focal_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/huasdorff_distance_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/kldiv_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/lovasz_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/ohem_cross_entropy_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/silog_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/tversky_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/losses/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/featurepyramid.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/fpn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/ic_neck.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/jpu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/mla_neck.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/necks/multilevel_neck.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/base.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/cascade_encoder_decoder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/depth_estimator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/multimodal_encoder_decoder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/segmentors/seg_tta.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/text_encoder/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/text_encoder/clip_text_encoder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/basic_block.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/embed.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/encoding.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/inverted_residual.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/make_divisible.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/point_sample.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/ppm.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/res_layer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/san_layers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/se_layer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/self_attention_block.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/shape_convert.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/up_conv_block.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/wrappers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/ops/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/ops/encoding.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/ops/wrappers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/registry/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/registry/registry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/sampler/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/sampler/base_pixel_sampler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/sampler/builder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/sampler/ohem_pixel_sampler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/structures/seg_data_sample.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/bpe_simple_vocab_16e6.txt.gz" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/class_names.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/collect_env.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/get_templates.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/io.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/mask_classification.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/misc.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/set_env.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/tokenizer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/utils/typing_utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/version.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/visualization/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/visualization/local_visualizer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pretrained/mit_b5.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_091936.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_091936/20250427_091936.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_091936/vis_data/20250427_091936.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_091936/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201126.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201126/20250427_201126.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201736.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201736/20250427_201736.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201808.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201808/20250427_201808.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201841.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201841/20250427_201841.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201841/vis_data/20250427_201841.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_201841/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_202449.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250427_202449/20250427_202449.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_104258/20250428_104258.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_104523/20250428_104523.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_105129.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_105129/20250428_105129.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_105534.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_105534/20250428_105534.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110034.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110034/20250428_110034.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110154.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110154/20250428_110154.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110154/vis_data/20250428_110154.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110154/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110750.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110750/20250428_110750.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110750/vis_data/20250428_110750.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110750/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110857.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110857/20250428_110857.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110857/vis_data/20250428_110857.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_110857/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_111558.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_111558/20250428_111558.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_113609.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_113609/20250428_113609.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_113609/vis_data/20250428_113609.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_113609/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124118.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124118/20250428_124118.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124118/vis_data/20250428_124118.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124118/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124340.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124340/20250428_124340.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124340/vis_data/20250428_124340.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124340/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124500.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124500/20250428_124500.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124500/vis_data/20250428_124500.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_124500/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130043.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130043/20250428_130043.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130043/vis_data/20250428_130043.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130043/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130428.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130428/20250428_130428.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130428/vis_data/20250428_130428.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250428_130428/vis_data/scalars.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_100517/20250506_100517.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_100517/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_101111/20250506_101111.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_101111/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_150051/20250506_150051.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_150051/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_150742/20250506_150742.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_150742/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_151043/20250506_151043.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_151043/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_151413/20250506_151413.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_151413/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152502/20250506_152502.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152502/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152634/20250506_152634.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152634/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152742/20250506_152742.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152742/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152835/20250506_152835.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152835/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152913/20250506_152913.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_152913/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_153924/20250506_153924.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_153924/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154313/20250506_154313.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154313/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154337/20250506_154337.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154337/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154351/20250506_154351.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154351/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154803/20250506_154803.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_154803/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_161321/20250506_161321.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/20250506_161321/vis_data/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_1.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_2.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_3.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_4.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_5.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/epoch_6.pth" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/last_checkpoint" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/work_dir/san-vit-b16_coco-stuff164k-640x640.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,6 +336,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "glance2sky"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/glance2sky/UDA.git",
+    "accountId": "4411d9b5-910c-493e-8639-f8bb63b6efa3"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -114,7 +425,20 @@
       <option name="presentableId" value="Default" />
       <updated>1743484946166</updated>
     </task>
+    <task id="LOCAL-00001" summary="origin SAN on coco_stuff datasets">
+      <option name="closed" value="true" />
+      <created>1746526441968</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1746526441968</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="origin SAN on coco_stuff datasets" />
+    <option name="LAST_COMMIT_MESSAGE" value="origin SAN on coco_stuff datasets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
