@@ -83,6 +83,13 @@ class ClassificationCost(BaseMatchCost):
         gt_labels = gt_instances.labels
 
         pred_scores = pred_scores.softmax(-1)
+        # # ===============================
+        # print("Pred scores shape:", pred_scores.shape)  # 例如 [N, num_classes]
+        # print("GT labels max value:", gt_labels.max())
+        # print("GT labels min value:", gt_labels.min())
+        # assert gt_labels.max() < pred_scores.shape[1], "标签值超出预测分数维度"
+        # assert gt_labels.min() >= 0, "负标签值非法"
+        # # =================================
         cls_cost = -pred_scores[:, gt_labels]
 
         return cls_cost * self.weight
