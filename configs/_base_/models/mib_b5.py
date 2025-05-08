@@ -1,7 +1,17 @@
-norm_cfg = dict(type='BN', requires_grad=True)
+norm_cfg = dict(type='SyncBN', requires_grad=True)
+
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    bgr_to_rgb=True,
+    size_divisor=32,
+    pad_val=0,
+    seg_pad_val=255)
 model = dict(
     type='EncoderDecoder',
     pretrained='pretrained/mit_b5.pth',
+    data_preprocessor=data_preprocessor,
     # init_cfg=dict(type='pretrained',checkpoint='pretrained/mit_b5.pth'),
     backbone=dict(type='mit_b5', style='pytorch'),
     # hy_conv=dict(type='conv_layer'),

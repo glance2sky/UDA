@@ -1,11 +1,17 @@
-from projects.Adabins.configs.adabins.adabins_efficient_b5_4x16_25e_NYU_416x544 import norm_cfg
 
-
+norm_cfg = dict(type='SyncBN', requires_grad=True)
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    bgr_to_rgb=True,
+    pad_val=0,
+    seg_pad_val=255)
 
 model = dict(
     type='EncoderDecoder',
     pretrained='pretrained/mit_b5.pth',
-    backbone=dict(type='MixVisionTransformer',
+    backbone=dict(type='MixVisionTransformer2',
                   embed_dims=64,
                   num_heads=[1,2,5,8],
                   num_layers=[3,6,4,3],
@@ -28,7 +34,7 @@ model = dict(
                              dilations=(1,6,12,18),
                              pool=False,
                              act_cfg=dict(type='ReLU'),
-                             norm_cfg=None,
+                             norm_cfg=norm_cfg,
                          )
                      ),
                      loss_decode=dict(

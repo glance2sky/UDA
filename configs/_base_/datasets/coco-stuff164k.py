@@ -86,6 +86,7 @@ train_dataloader = dict(
         type=dataset_type,
         metainfo = dict(classes=new_class,
                         palette=[]),
+        reduce_zero_label=False,
         data_root=data_root,
         data_prefix=dict(
             img_path='images/train2017', seg_map_path='annotations/train2017'),
@@ -100,6 +101,7 @@ val_dataloader = dict(
         metainfo = dict(classes=new_class,
                         palette=[]),
         data_root=data_root,
+        reduce_zero_label=False,
         data_prefix=dict(
             img_path='images/val2017', seg_map_path='annotations/val2017'),
         pipeline=test_pipeline))

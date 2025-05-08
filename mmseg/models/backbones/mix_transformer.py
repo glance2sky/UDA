@@ -452,7 +452,6 @@ class MixVisionTransformer2(BaseModule):
         return outs
 
     def forward(self, x):
-        x = x[0].unsqueeze(0)
         x = self.forward_features(x)
         # x = self.head(x)
 

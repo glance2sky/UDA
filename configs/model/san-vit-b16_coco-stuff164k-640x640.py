@@ -82,3 +82,4 @@ param_scheduler = [
     )
 ]
 work_dir='work_dir'
+load_from = 'iter_60000.pth'

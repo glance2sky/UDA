@@ -16,7 +16,7 @@ class COCOStuffDataset(BaseSegDataset):
     """
     METAINFO = dict(
         classes=(
-            'unlabeled','person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+            'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
             'train', 'truck', 'boat', 'traffic light', 'fire hydrant','street sign',
             'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
             'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe','hat',
