@@ -1,5 +1,5 @@
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)
+optimizer = dict(type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01)
 optim_wrapper = dict(type='OptimWrapper', optimizer=optimizer, clip_grad=None)
 # learning policy
 param_scheduler = [
@@ -8,7 +8,7 @@ param_scheduler = [
         eta_min=1e-4,
         power=0.9,
         begin=0,
-        end=160000,
+        end=80000,
         by_epoch=False)
 ]
 # training schedule for 160k
