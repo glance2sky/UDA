@@ -15,6 +15,10 @@ from mmseg.registry import DATASETS
 # # runner.train()
 # print(runner.test())
 
-config = Config.fromfile('configs/model/daformer_mitb5_b2_cityscapes-512x512.py')
+# config = Config.fromfile('configs/model/daformer_mitb5_b2_cityscapes-512x512.py')
+# runner = Runner.from_cfg(config)
+# runner.train()
+
+config = Config.fromfile('configs/model/daformer_mitb5_b2_gta-512x512.py')
 runner = Runner.from_cfg(config)
 runner.train()
