@@ -153,6 +153,7 @@ class DAFormerHead(BaseDecodeHead):
         self.fuse_layer = build_layer(
             sum(embed_dims), self.channels, **fusion_cfg)
 
+
     def forward(self, inputs):
         x = inputs
         n, _, h, w = x[-1].shape

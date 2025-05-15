@@ -4,12 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="origin SAN on coco_stuff datasets">
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="re make train schedule">
+      <change afterPath="$PROJECT_DIR$/configs/model/hyperformer_mitb5_b2_cityscapes-512x512.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/hierarchy_helpers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/tree.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/visualize_helpers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/datasets/coco-stuff164k.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/datasets/coco-stuff164k.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/model/san-vit-b16_coco-stuff164k-640x640.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/model/san-vit-b16_coco-stuff164k-640x640.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/datasets/coco_stuff.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/coco_stuff.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/assigners/match_cost.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/assigners/match_cost.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/daformer_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/daformer_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/isa_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/isa_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,12 +43,12 @@
     &quot;assignee&quot;: &quot;glance2sky&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://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@github.com/glance2sky/UDA.git",
-    "accountId": "4411d9b5-910c-493e-8639-f8bb63b6efa3"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:glance2sky/UDA.git&quot;,
+    &quot;accountId&quot;: &quot;4411d9b5-910c-493e-8639-f8bb63b6efa3&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -59,17 +64,17 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/xiaokang/code/SEG/configs/_base_/schedules",
+    "last_opened_file_path": "/home/xiaokang/code/SEG/data/cityscapes",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/configs/_base_/schedules" />
-      <recent name="$PROJECT_DIR$/configs/_base_" />
+      <recent name="$PROJECT_DIR$/data/cityscapes" />
+      <recent name="$PROJECT_DIR$/data/coco_stuff164k" />
+      <recent name="$PROJECT_DIR$/configs/model" />
       <recent name="$PROJECT_DIR$/configs/_base_/datasets" />
-      <recent name="$PROJECT_DIR$/configs/_base_/models" />
-      <recent name="$PROJECT_DIR$/mmseg/models/backbones" />
+      <recent name="$PROJECT_DIR$/configs/_base_/schedules" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/configs/model" />
@@ -129,12 +134,48 @@
       <option name="project" value="LOCAL" />
       <updated>1746526441968</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="corect the coco datasets classes name and label IDs">
+      <option name="closed" value="true" />
+      <created>1746584107791</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1746584107792</updated>
+    </task>
+    <task id="LOCAL-00003" summary="remake the daformer model and try to train again on cityscapes dataset">
+      <option name="closed" value="true" />
+      <created>1746705544036</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1746705544036</updated>
+    </task>
+    <task id="LOCAL-00004" summary="add gtav dataset">
+      <option name="closed" value="true" />
+      <created>1746754665405</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1746754665405</updated>
+    </task>
+    <task id="LOCAL-00005" summary="re make train schedule">
+      <option name="closed" value="true" />
+      <created>1746778881253</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1746778881253</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="origin SAN on coco_stuff datasets" />
-    <option name="LAST_COMMIT_MESSAGE" value="origin SAN on coco_stuff datasets" />
+    <MESSAGE value="corect the coco datasets classes name and label IDs" />
+    <MESSAGE value="remake the daformer model and try to train again on cityscapes dataset" />
+    <MESSAGE value="add gtav dataset" />
+    <MESSAGE value="re make train schedule" />
+    <option name="LAST_COMMIT_MESSAGE" value="re make train schedule" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -145,9 +186,74 @@
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/datasets/basesegdataset.py</url>
-          <line>182</line>
-          <option name="timeStamp" value="6" />
+          <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
+          <line>248</line>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
+          <line>131</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/runner.py</url>
+          <line>1822</line>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
+          <line>460</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
+          <line>488</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
+          <line>58</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
+          <line>185</line>
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>400</line>
+          <option name="timeStamp" value="71" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
+          <line>402</line>
+          <option name="timeStamp" value="107" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
+          <line>219</line>
+          <option name="timeStamp" value="108" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
+          <line>378</line>
+          <option name="timeStamp" value="109" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/runner.py</url>
+          <line>1799</line>
+          <option name="timeStamp" value="110" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/base.py</url>
+          <line>144</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
+          <line>52</line>
+          <option name="timeStamp" value="112" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
