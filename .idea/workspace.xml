@@ -4,16 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="re make train schedule">
-      <change afterPath="$PROJECT_DIR$/configs/model/hyperformer_mitb5_b2_cityscapes-512x512.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/hierarchy_helpers.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/tree.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/visualize_helpers.py" afterDir="false" />
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment=" add HHHead and cityscapes hierarchy file">
+      <change afterPath="$PROJECT_DIR$/configs/_base_/datasets/uda_gta2cityscapes512.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/_base_/models/daformer_HHHead.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/datasets/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/UDA/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/daformer_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/daformer_head.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/isa_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/isa_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/datasets/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/builder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/registry/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/registry/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/registry/registry.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/registry/registry.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -64,17 +70,17 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/xiaokang/code/SEG/data/cityscapes",
+    "last_opened_file_path": "/home/xiaokang/code/SEG",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/data/cityscapes" />
       <recent name="$PROJECT_DIR$/data/coco_stuff164k" />
       <recent name="$PROJECT_DIR$/configs/model" />
       <recent name="$PROJECT_DIR$/configs/_base_/datasets" />
-      <recent name="$PROJECT_DIR$/configs/_base_/schedules" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/configs/model" />
@@ -166,7 +172,23 @@
       <option name="project" value="LOCAL" />
       <updated>1746778881253</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="add HHHead">
+      <option name="closed" value="true" />
+      <created>1747276596058</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1747276596058</updated>
+    </task>
+    <task id="LOCAL-00007" summary=" add HHHead and cityscapes hierarchy file">
+      <option name="closed" value="true" />
+      <created>1747276873082</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1747276873082</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -175,7 +197,9 @@
     <MESSAGE value="remake the daformer model and try to train again on cityscapes dataset" />
     <MESSAGE value="add gtav dataset" />
     <MESSAGE value="re make train schedule" />
-    <option name="LAST_COMMIT_MESSAGE" value="re make train schedule" />
+    <MESSAGE value="add HHHead" />
+    <MESSAGE value=" add HHHead and cityscapes hierarchy file" />
+    <option name="LAST_COMMIT_MESSAGE" value=" add HHHead and cityscapes hierarchy file" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -196,16 +220,6 @@
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/runner.py</url>
-          <line>1822</line>
-          <option name="timeStamp" value="53" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
-          <line>460</line>
-          <option name="timeStamp" value="54" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
           <line>488</line>
           <option name="timeStamp" value="55" />
@@ -214,16 +228,6 @@
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
           <line>58</line>
           <option name="timeStamp" value="56" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
-          <line>185</line>
-          <option name="timeStamp" value="59" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
-          <line>400</line>
-          <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
@@ -246,16 +250,28 @@
           <option name="timeStamp" value="110" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/base.py</url>
-          <line>144</line>
-          <option name="timeStamp" value="111" />
+          <url>file://$PROJECT_DIR$/mmseg/datasets/utils.py</url>
+          <line>33</line>
+          <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
-          <line>52</line>
-          <option name="timeStamp" value="112" />
+          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
+          <line>264</line>
+          <option name="timeStamp" value="171" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>510</line>
+          <option name="timeStamp" value="173" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
 </project>

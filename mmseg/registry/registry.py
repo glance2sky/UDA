@@ -30,6 +30,7 @@ from mmengine.registry import VISBACKENDS as MMENGINE_VISBACKENDS
 from mmengine.registry import VISUALIZERS as MMENGINE_VISUALIZERS
 from mmengine.registry import \
     WEIGHT_INITIALIZERS as MMENGINE_WEIGHT_INITIALIZERS
+from mmengine.registry import FUNCTIONS as MMENGINE_FUNCTIONS
 from mmengine.registry import Registry
 
 # manage all kinds of runners like `EpochBasedRunner` and `IterBasedRunner`
@@ -116,3 +117,6 @@ LOG_PROCESSORS = Registry(
 
 # manage inferencer
 INFERENCERS = Registry('inferencer', parent=MMENGINE_INFERENCERS)
+
+# manage functions
+FUNCTIONS = Registry('functions', parent=MMENGINE_FUNCTIONS, locations=['mmseg.datasets'])

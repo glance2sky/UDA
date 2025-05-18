@@ -324,10 +324,10 @@ class HHHead(BaseDecodeHead):
         return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
 
     def hrc_softmax(self, logits):
-        # logits = logits - torch.max(logits, dim=1, keepdim=True).values
+        logits = logits - torch.max(logits, dim=1, keepdim=True).values
         exp_logits = torch.exp(logits)
-
-        Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda())
+        with torch.amp.autocast(enabled=False,device_type='cuda'):
+            Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda())
         cond_probs = exp_logits / torch.clamp(Z, min=1e-15)
         return cond_probs
 
@@ -335,7 +335,7 @@ class HHHead(BaseDecodeHead):
         log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-4)))
         log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda())
         joints = torch.exp(log_sum_p)
-        return joints
+        return joints[:, :19, :, :]
 
     def run(self, projected_embedding, input_size):
         logits = self.hyper_mlr(projected_embedding)
@@ -346,7 +346,7 @@ class HHHead(BaseDecodeHead):
             align_corners=self.align_corners)
         cond_probs = self.hrc_softmax(logits)
         joints = self.get_joints(cond_probs)
-        joints = joints[:,:19,:,:]
+
 
         return joints, cond_probs
 
@@ -363,6 +363,8 @@ class HHHead(BaseDecodeHead):
         """
         if unseen is None:
             unseen = []
+        if len(probs.shape) == 3:
+            probs = probs.unsqueeze(0)
 
         # Gather target class probabilities
         cls_probs = probs[:, :self.tree.K, :, :]  # Equivalent to tf.gather with np.arange
@@ -445,7 +447,7 @@ class HHHead(BaseDecodeHead):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        probs, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
+        _, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
         losses = self.loss_by_feat(cprobs, batch_data_samples)
         return losses
 
@@ -509,6 +511,35 @@ class HHHead(BaseDecodeHead):
         probs, cprobs = self.forward(inputs, batch_img_metas[0]['img_shape'])
 
         return self.predict_by_feat(probs, batch_img_metas)
+
+    # def predict_by_feat(self, seg_logits: Tensor,
+    #                     batch_img_metas: List[dict]) -> Tensor:
+    #     """Transform a batch of output seg_logits to the input shape.
+    #
+    #     Args:
+    #         seg_logits (Tensor): The output from decode head forward function.
+    #         batch_img_metas (list[dict]): Meta information of each image, e.g.,
+    #             image size, scaling factor, etc.
+    #
+    #     Returns:
+    #         Tensor: Outputs segmentation logits map.
+    #     """
+    #
+    #     if isinstance(batch_img_metas[0].img_shape, torch.Size):
+    #         # slide inference
+    #         size = batch_img_metas[0].img_shape
+    #     elif 'pad_shape' in batch_img_metas[0]:
+    #         size = batch_img_metas[0].pad_shape[:2]
+    #     else:
+    #         size = batch_img_metas[0].img_shape
+    #
+    #     seg_logits = resize(
+    #         input=seg_logits,
+    #         size=size,
+    #         mode='bilinear',
+    #         align_corners=self.align_corners)
+    #     return seg_logits
+
 
 
 

@@ -1,0 +1,274 @@
+# ---------------------------------------------------------------
+# Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+# Licensed under the Apache License, Version 2.0
+# ---------------------------------------------------------------
+
+# The ema model update and the domain-mixing are based on:
+# https://github.com/vikolss/DACS
+# Copyright (c) 2020 vikolss. Licensed under the MIT License.
+# A copy of the license is available at resources/license_dacs
+
+import math
+import os
+import random
+from copy import deepcopy
+from typing import Dict, Optional, Tuple, Union, List
+from mmseg.utils import (ForwardResults, OptConfigType, OptMultiConfig,
+                         OptSampleList, SampleList)
+from mmengine.optim import OptimWrapper
+# from mmengine.runner import Runner
+from mmengine.logging import MessageHub
+
+import mmcv
+import numpy as np
+import torch
+from torch import Tensor
+from matplotlib import pyplot as plt
+from timm.models.layers import DropPath
+from torch.nn.modules.dropout import _DropoutNd
+
+from configs.model.uda_daformer_HHHead_gta2cityscapes512 import train_cfg
+# from mmcv.ops.point_sample import normalize
+# from mmseg.core import add_prefix
+from mmseg.ops import resize
+from mmseg.models import UDA, build_segmentor
+from mmseg.models.UDA.uda_decorator import UDADecorator
+# from mmseg.models.utils.dacs_transforms import (denorm, get_class_masks,
+#                                                 get_mean_std, strong_transform)
+# from mmseg.models.utils.visualization import subplotimg
+# from mmseg.utils.utils import downscale_label_ratio
+from mmseg.utils import (ConfigType, OptConfigType, OptMultiConfig,
+                         OptSampleList, SampleList, add_prefix)
+# from mmseg.models.decode_heads import FloatingRegionScore, init_mask, select_pixels_to_label
+
+
+from torchvision import transforms
+
+def _params_equal(ema_model, model):
+    for ema_param, param in zip(ema_model.named_parameters(),
+                                model.named_parameters()):
+        if not torch.equal(ema_param[1].data, param[1].data):
+            # print("Difference in", ema_param[0])
+            return False
+    return True
+
+
+def calc_grad_magnitude(grads, norm_type=2.0):
+    norm_type = float(norm_type)
+    if norm_type == math.inf:
+        norm = max(p.abs().max() for p in grads)
+    else:
+        norm = torch.norm(
+            torch.stack([torch.norm(p, norm_type) for p in grads]), norm_type)
+
+    return norm
+
+def exponential_weight_schedule(t, T, w_min, w_max, alpha=5.0):
+    return w_min + (w_max - w_min) * (1 - math.exp(-alpha * t / T))
+
+@UDA.register_module()
+class DACS(UDADecorator):
+
+    def __init__(self,
+                 uda_model,
+                 data_preprocessor: OptConfigType = None,
+                 train_cfg: OptConfigType = None,
+                 test_cfg: OptConfigType = None,
+                 ):
+        super(DACS, self).__init__(uda_model,
+                                   data_preprocessor)
+
+        self.train_cfg = {}
+        self.message_hub = MessageHub.get_current_instance()
+
+        # self.local_iter = 0
+        # self.max_iters = cfg['max_iters'] # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将runner的max_iters加入了
+        self.alpha = 0.999
+        # self.pseudo_threshold = cfg['pseudo_threshold']
+        # self.psweight_ignore_top = cfg['pseudo_weight_ignore_top']
+        # self.psweight_ignore_bottom = cfg['pseudo_weight_ignore_bottom']
+        # self.fdist_lambda = cfg['imnet_feature_dist_lambda']
+        # self.fdist_classes = cfg['imnet_feature_dist_classes']
+        # self.fdist_scale_min_ratio = cfg['imnet_feature_dist_scale_min_ratio']
+        # self.enable_fdist = self.fdist_lambda > 0
+        # self.mix = cfg['mix']
+        # self.blur = cfg['blur']
+        # self.color_jitter_s = cfg['color_jitter_strength']
+        # self.color_jitter_p = cfg['color_jitter_probability']
+        # self.debug_img_interval = cfg['debug_img_interval']
+        # self.print_grad_magnitude = cfg['print_grad_magnitude']
+        # assert self.mix == 'class'
+
+        # self.debug_fdist_mask = None
+        # self.debug_gt_rescale = None
+
+        # self.class_probs = {}
+        ema_cfg = deepcopy(uda_model) # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将配置文件中的model配置字典加入了。
+        self.ema_model = build_segmentor(ema_cfg)
+        self._init_ema_weights()
+
+
+        # if self.enable_fdist:
+        #     self.imnet_model = build_segmentor(deepcopy(cfg['model']))
+        # else:
+        #     self.imnet_model = None
+
+        self.transforms = transforms.Normalize(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
+
+
+    def get_ema_model(self):
+        return self.ema_model
+
+    # def get_imnet_model(self):
+    #     return self.imnet_model
+
+    def _init_ema_weights(self):
+        for param in self.get_ema_model().parameters():
+            param.detach_()
+        mp = list(self.get_model().parameters())
+        mcp = list(self.get_ema_model().parameters())
+        for i in range(0, len(mp)):
+            if not mcp[i].data.shape:  # scalar tensor
+                mcp[i].data = mp[i].data.clone()
+            else:
+                mcp[i].data[:] = mp[i].data[:].clone()
+
+    def _update_ema(self, iter):
+        alpha_teacher = min(1 - 1 / (iter + 1), self.alpha)
+        for ema_param, param in zip(self.get_ema_model().parameters(),
+                                    self.get_model().parameters()):
+            if not param.data.shape:  # scalar tensor
+                ema_param.data = \
+                    alpha_teacher * ema_param.data + \
+                    (1 - alpha_teacher) * param.data
+            else:
+                ema_param.data[:] = \
+                    alpha_teacher * ema_param[:].data[:] + \
+                    (1 - alpha_teacher) * param[:].data[:]
+
+# TODO: 为了保持框架一致，train_step方法不应该被重构，loss应该被重构，模仿encoder_decoder
+    def source_loss(self, inputs: Tensor, data_samples: SampleList) -> dict:
+        """Calculate losses from a batch of inputs and data samples.
+
+        Args:
+            inputs (Tensor): Input images.
+            data_samples (list[:obj:`SegDataSample`]): The seg data samples.
+                It usually includes information such as `metainfo` and
+                `gt_sem_seg`.
+
+        Returns:
+            dict[str, Tensor]: a dictionary of loss components
+        """
+
+        losses = dict()
+
+        source_x = self.get_model().extract_feat(inputs)
+        source_loss_decode = self.get_model().decode_head.loss(source_x, data_samples,
+                                            self.train_cfg)
+
+        losses.update(add_prefix(source_loss_decode, 'source_decode'))
+        # loss_decode = self.get_model()._decode_head_forward_train(source_x, data_samples)
+        # losses.update(loss_decode)
+        # for m in self.get_ema_model().modules():
+        #     if isinstance(m, _DropoutNd):
+        #         m.training = False
+        #     if isinstance(m, DropPath):
+        #         m.training = False
+        # target_data['inputs'] = torch.stack(target_data['inputs'])
+        # probs, cprobs = self.get_ema_model().encode_decode(target_data['inputs'], target_data['data_samples'])
+        # pseudo_label = self.get_ema_model().decode_head.decide(probs)
+        # target_data.data_samples.seg_sem_map = pseudo_label
+        # target_x = self.get_model().extract_feat(target_data)
+        # target_loss_decode = self.get_model().decode_head.loss(target_x, target_data['data_samples'], self.train_cfg)
+
+
+
+
+
+        # log_vars.pop('loss', None)  # remove the unnecessary 'loss'
+        # outputs = dict(
+        #     log_vars=log_vars, num_samples=len(data_batch['img_metas']))
+        return losses
+
+
+    def target_loss(self, inputs: Tensor, data_samples: SampleList) -> dict:
+        losses = dict()
+
+        target_feat = self.get_ema_model().extract_feat(inputs)
+        probs, cprobs = self.get_ema_model().decode_head.forward(target_feat, data_samples[0].img_shape)
+
+        pseudo_label = self.get_ema_model().decode_head.decide(probs)
+        for i in range(len(data_samples)):
+            data_samples[i].gt_sem_seg.data = pseudo_label[i].unsqueeze(0)
+
+        target_x = self.get_model().extract_feat(inputs)
+        target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,
+                                                               self.train_cfg)
+        losses.update(add_prefix(target_loss_decode, 'target_decode'))
+        return losses
+
+
+
+
+    def train_step(self, data: Union[dict, tuple, list],
+                   optim_wrapper: OptimWrapper) -> Dict[str, torch.Tensor]:
+        """Implements the default model training process including
+        preprocessing, model forward propagation, loss calculation,
+        optimization, and back-propagation.
+
+        During non-distributed training. If subclasses do not override the
+        :meth:`train_step`, :class:`EpochBasedTrainLoop` or
+        :class:`IterBasedTrainLoop` will call this method to update model
+        parameters. The default parameter update process is as follows:
+
+        1. Calls ``self.data_processor(data, training=False)`` to collect
+           batch_inputs and corresponding data_samples(labels).
+        2. Calls ``self(batch_inputs, data_samples, mode='loss')`` to get raw
+           loss
+        3. Calls ``self.parse_losses`` to get ``parsed_losses`` tensor used to
+           backward and dict of loss tensor used to log messages.
+        4. Calls ``optim_wrapper.update_params(loss)`` to update model.
+
+        Args:
+            data (dict or tuple or list): Data sampled from dataset.
+            optim_wrapper (OptimWrapper): OptimWrapper instance
+                used to update model parameters.
+
+        Returns:
+            Dict[str, torch.Tensor]: A ``dict`` of tensor for logging.
+        """
+        # Enable automatic mixed precision training context.
+
+
+        source_data = data['source']
+        target_data = data['target']
+        with optim_wrapper.optim_context(self):
+            source_data = self.data_preprocessor(source_data, True)
+            source_losses = self._run_forward(source_data, mode='source_loss')  # type: ignore
+        parsed_losses, log_vars = self.parse_losses(source_losses)  # type: ignore
+        optim_wrapper.update_params(parsed_losses)
+
+        target_data['inputs'] = torch.stack(target_data['inputs'])
+        for m in self.get_ema_model().modules():
+            if isinstance(m, _DropoutNd):
+                m.training = False
+            if isinstance(m, DropPath):
+                m.training = False
+        with optim_wrapper.optim_context(self):
+            target_data = self.data_preprocessor(target_data, True)
+            target_losses = self._run_forward(target_data, mode='target_loss')
+        parsed_losses, t_log_vars = self.parse_losses(target_losses)  # type: ignore
+        optim_wrapper.update_params(parsed_losses)
+        log_vars.update(t_log_vars)
+
+        cur_iter = self.message_hub.get_info('iter')
+        self._update_ema(cur_iter)
+
+
+
+        return log_vars
+
+
+
+# 在源域图片上评估了双曲确定性，最终mIoU小下降了一点；
+# 250302_1018_gta2cs_uda_warm_fdthings_rcs_croppl_a999_daformer_mitb5_s0_0a8e9

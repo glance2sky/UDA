@@ -8,6 +8,7 @@ NECKS = MODELS
 HEADS = MODELS
 LOSSES = MODELS
 SEGMENTORS = MODELS
+UDA = MODELS
 
 
 def build_backbone(cfg):

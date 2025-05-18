@@ -7,7 +7,7 @@ from .chase_db1 import ChaseDB1Dataset
 from .cityscapes import CityscapesDataset
 from .coco_stuff import COCOStuffDataset
 from .dark_zurich import DarkZurichDataset
-from .dataset_wrappers import MultiImageMixDataset
+from .dataset_wrappers import MultiImageMixDataset, UDADataset
 from .decathlon import DecathlonDataset
 from .drive import DRIVEDataset
 from .dsdl import DSDLSegDataset
@@ -28,6 +28,7 @@ from .stare import STAREDataset
 from .synapse import SynapseDataset
 from .gtav import GTAVDataset
 from .synthia import SynthiaDataset
+
 # yapf: disable
 from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
                          BioMedical3DRandomCrop, BioMedical3DRandomFlip,
@@ -42,6 +43,8 @@ from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
                          ResizeShortestEdge, ResizeToMultiple, RGB2Gray,
                          SegRescale)
 from .voc import PascalVOCDataset
+
+from .utils import re_pseudo_collate
 
 # yapf: enable
 __all__ = [
@@ -63,5 +66,6 @@ __all__ = [
     'MapillaryDataset_v2', 'Albu', 'LEVIRCDDataset',
     'LoadMultipleRSImageFromFile', 'LoadSingleRSImageFromFile',
     'ConcatCDInput', 'BaseCDDataset', 'DSDLSegDataset', 'BDD100KDataset',
-    'NYUDataset', 'HSIDrive20Dataset', 'GTAVDataset', 'SynthiaDataset'
+    'NYUDataset', 'HSIDrive20Dataset', 'GTAVDataset', 'SynthiaDataset',
+    'UDADataset', 're_pseudo_collate'
 ]
