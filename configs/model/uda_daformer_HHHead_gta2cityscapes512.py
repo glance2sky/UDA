@@ -10,7 +10,15 @@ model = dict(
     uda_model=dict(
         decode_head=dict(type='HHHead',
                       tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
-                                   'json':'data/cityscapes/cityscapes_hierarchy.json'})))
+                                   'json':'data/cityscapes/cityscapes_hierarchy.json'})),
+    mix='class',
+    blur=True,
+    color_jitter_strength=0.2,
+    color_jitter_probability=0.2,
+    pseudo_threshold=0.968,
+    pseudo_weight_ignore_top=15,
+    pseudo_weight_ignore_bottom=120
+)
 train_cfg = dict(
     type='IterBasedTrainLoop',
     max_iters=60000,

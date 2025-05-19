@@ -434,7 +434,7 @@ class HHHead(BaseDecodeHead):
         return probs, cprobs
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
-             train_cfg: ConfigType) -> dict:
+             train_cfg: ConfigType, seg_weight=None) -> dict:
         """Forward function for training.
 
         Args:
@@ -443,16 +443,17 @@ class HHHead(BaseDecodeHead):
                 data samples. It usually includes information such
                 as `img_metas` or `gt_semantic_seg`.
             train_cfg (dict): The training config.
+            seg_weight: None
 
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
         _, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
-        losses = self.loss_by_feat(cprobs, batch_data_samples)
+        losses = self.loss_by_feat(cprobs, batch_data_samples, seg_weight)
         return losses
 
     def loss_by_feat(self, seg_logits: Tensor,
-                     batch_data_samples: SampleList) -> dict:
+                     batch_data_samples: SampleList, seg_weight=None) -> dict:
         """Compute segmentation loss.
 
         Args:
@@ -460,6 +461,7 @@ class HHHead(BaseDecodeHead):
             batch_data_samples (List[:obj:`SegDataSample`]): The seg
                 data samples. It usually includes information such
                 as `metainfo` and `gt_sem_seg`.
+            seg_weight: None
 
         Returns:
             dict[str, Tensor]: a dictionary of loss components
@@ -481,6 +483,14 @@ class HHHead(BaseDecodeHead):
         log_sum_p = log_sum_p[:,:19,:,:]
         flat_cprobs = log_sum_p.permute(0,2,3,1).contiguous().view((log_sum_p.shape[0],-1,log_sum_p.shape[1]))
         valid_cprobs = flat_cprobs[valid_mask]
+
+        if seg_weight is not None:
+            flat_weight = seg_weight.view(seg_weight.shape[0], -1)
+            valid_weight = flat_weight[valid_mask]
+            indices = valid_labels.view(-1, 1).expand(-1, valid_cprobs.size(1))
+            pos_logp = torch.gather(valid_cprobs, dim=1, index=indices)[:, 0]
+            loss['loss_ce'] = -torch.mean(pos_logp * valid_weight)
+            return loss
 
 
         indices = valid_labels.view(-1, 1).expand(-1, valid_cprobs.size(1))
@@ -512,33 +522,10 @@ class HHHead(BaseDecodeHead):
 
         return self.predict_by_feat(probs, batch_img_metas)
 
-    # def predict_by_feat(self, seg_logits: Tensor,
-    #                     batch_img_metas: List[dict]) -> Tensor:
-    #     """Transform a batch of output seg_logits to the input shape.
-    #
-    #     Args:
-    #         seg_logits (Tensor): The output from decode head forward function.
-    #         batch_img_metas (list[dict]): Meta information of each image, e.g.,
-    #             image size, scaling factor, etc.
-    #
-    #     Returns:
-    #         Tensor: Outputs segmentation logits map.
-    #     """
-    #
-    #     if isinstance(batch_img_metas[0].img_shape, torch.Size):
-    #         # slide inference
-    #         size = batch_img_metas[0].img_shape
-    #     elif 'pad_shape' in batch_img_metas[0]:
-    #         size = batch_img_metas[0].pad_shape[:2]
-    #     else:
-    #         size = batch_img_metas[0].img_shape
-    #
-    #     seg_logits = resize(
-    #         input=seg_logits,
-    #         size=size,
-    #         mode='bilinear',
-    #         align_corners=self.align_corners)
-    #     return seg_logits
+    def loss_with_weight(self, x, gt_semantic_seg, seg_weight=None):
+        probs, cprobs = self.forward(x)
+
+
 
 
 

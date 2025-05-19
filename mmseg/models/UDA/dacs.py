@@ -13,6 +13,9 @@ import os
 import random
 from copy import deepcopy
 from typing import Dict, Optional, Tuple, Union, List
+
+from scipy.special.cython_special import pseudo_huber
+
 from mmseg.utils import (ForwardResults, OptConfigType, OptMultiConfig,
                          OptSampleList, SampleList)
 from mmengine.optim import OptimWrapper
@@ -41,8 +44,18 @@ from mmseg.utils import (ConfigType, OptConfigType, OptMultiConfig,
                          OptSampleList, SampleList, add_prefix)
 # from mmseg.models.decode_heads import FloatingRegionScore, init_mask, select_pixels_to_label
 
+import kornia
+import numpy as np
+import torch
+import torch.nn as nn
 
 from torchvision import transforms
+
+
+from mmseg.utils.uda_transforms import (denorm, get_class_masks,
+                                                get_mean_std, strong_transform)
+
+
 
 def _params_equal(ema_model, model):
     for ema_param, param in zip(ema_model.named_parameters(),
@@ -72,8 +85,16 @@ class DACS(UDADecorator):
     def __init__(self,
                  uda_model,
                  data_preprocessor: OptConfigType = None,
+                 mix='class',
+                 blur=True,
+                 color_jitter_strength=0.2,
+                 color_jitter_probability=0.2,
+                 pseudo_threshold=0.968,
+                 pseudo_weight_ignore_top=15,
+                 pseudo_weight_ignore_bottom=120,
                  train_cfg: OptConfigType = None,
                  test_cfg: OptConfigType = None,
+                 **kwargs
                  ):
         super(DACS, self).__init__(uda_model,
                                    data_preprocessor)
@@ -84,17 +105,17 @@ class DACS(UDADecorator):
         # self.local_iter = 0
         # self.max_iters = cfg['max_iters'] # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将runner的max_iters加入了
         self.alpha = 0.999
-        # self.pseudo_threshold = cfg['pseudo_threshold']
-        # self.psweight_ignore_top = cfg['pseudo_weight_ignore_top']
-        # self.psweight_ignore_bottom = cfg['pseudo_weight_ignore_bottom']
+        self.pseudo_threshold = pseudo_threshold
+        self.psweight_ignore_top = pseudo_weight_ignore_top
+        self.psweight_ignore_bottom = pseudo_weight_ignore_bottom
         # self.fdist_lambda = cfg['imnet_feature_dist_lambda']
         # self.fdist_classes = cfg['imnet_feature_dist_classes']
         # self.fdist_scale_min_ratio = cfg['imnet_feature_dist_scale_min_ratio']
         # self.enable_fdist = self.fdist_lambda > 0
-        # self.mix = cfg['mix']
-        # self.blur = cfg['blur']
-        # self.color_jitter_s = cfg['color_jitter_strength']
-        # self.color_jitter_p = cfg['color_jitter_probability']
+        self.mix = mix
+        self.blur = blur
+        self.color_jitter_s = color_jitter_strength
+        self.color_jitter_p = color_jitter_probability
         # self.debug_img_interval = cfg['debug_img_interval']
         # self.print_grad_magnitude = cfg['print_grad_magnitude']
         # assert self.mix == 'class'
@@ -105,7 +126,6 @@ class DACS(UDADecorator):
         # self.class_probs = {}
         ema_cfg = deepcopy(uda_model) # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将配置文件中的model配置字典加入了。
         self.ema_model = build_segmentor(ema_cfg)
-        self._init_ema_weights()
 
 
         # if self.enable_fdist:
@@ -113,7 +133,7 @@ class DACS(UDADecorator):
         # else:
         #     self.imnet_model = None
 
-        self.transforms = transforms.Normalize(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
+        # self.transforms = transforms.Normalize(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
 
 
     def get_ema_model(self):
@@ -191,20 +211,65 @@ class DACS(UDADecorator):
         return losses
 
 
-    def target_loss(self, inputs: Tensor, data_samples: SampleList) -> dict:
+    def target_loss(self, data: dict) -> dict:
         losses = dict()
+        source_data = data[0]
+        target_data = data[1]
+        inputs = target_data['inputs']
+        data_samples = target_data['data_samples']
+        gt_semantic_seg = source_data['data_samples'][0].gt_sem_seg.data.unsqueeze(0)
+        batch_size = inputs.shape[0]
+
+        means, stds = get_mean_std(source_data['inputs'][0].device)
+        strong_parameters = {
+            'mix': None,
+            'color_jitter': random.uniform(0, 1),
+            'color_jitter_s': self.color_jitter_s,
+            'color_jitter_p': self.color_jitter_p,
+            'blur': random.uniform(0, 1) if self.blur else 0,
+            'mean': means[0].unsqueeze(0),  # assume same normalization
+            'std': stds[0].unsqueeze(0)
+        }
 
         target_feat = self.get_ema_model().extract_feat(inputs)
-        probs, cprobs = self.get_ema_model().decode_head.forward(target_feat, data_samples[0].img_shape)
+        probs, _ = self.get_ema_model().decode_head.forward(target_feat, data_samples[0].img_shape)
 
-        pseudo_label = self.get_ema_model().decode_head.decide(probs)
-        for i in range(len(data_samples)):
-            data_samples[i].gt_sem_seg.data = pseudo_label[i].unsqueeze(0)
+        pseudo_prob, pseudo_label = torch.max(probs, dim=1)
+        ps_large_p = pseudo_prob.ge(self.pseudo_threshold).long() == 1
+        ps_size = np.size(np.array(pseudo_label.cpu()))
+        pseudo_weight = torch.sum(ps_large_p).item() / ps_size
+        pseudo_weight = pseudo_weight * torch.ones(
+            pseudo_prob.shape, device=inputs.device)
 
-        target_x = self.get_model().extract_feat(inputs)
+        if self.psweight_ignore_top > 0:
+            # Don't trust pseudo-labels in regions with potential
+            # rectification artifacts. This can lead to a pseudo-label
+            # drift from sky towards building or traffic light.
+            pseudo_weight[:, :self.psweight_ignore_top, :] = 0
+        if self.psweight_ignore_bottom > 0:
+            pseudo_weight[:, -self.psweight_ignore_bottom:, :] = 0
+        gt_pixel_weight = torch.ones((pseudo_weight.shape), device=inputs.device)
+
+        mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
+        mix_masks = get_class_masks(gt_semantic_seg)
+
+        for i in range(batch_size):
+            strong_parameters['mix'] = mix_masks[i]
+            mixed_img[i], mixed_lbl[i] = strong_transform(
+                strong_parameters,
+                data=torch.stack((source_data['inputs'][i], inputs[i])),
+                target=torch.stack((gt_semantic_seg[i][0], pseudo_label[i])))
+            _, pseudo_weight[i] = strong_transform(
+                strong_parameters,
+                target=torch.stack((gt_pixel_weight[i], pseudo_weight[i])))
+        mixed_img = torch.cat(mixed_img)
+        mixed_lbl = torch.cat(mixed_lbl)
+
+        target_x = self.get_model().extract_feat(mixed_img)
         target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,
-                                                               self.train_cfg)
-        losses.update(add_prefix(target_loss_decode, 'target_decode'))
+                                                               self.train_cfg, pseudo_weight)
+
+        losses.update(add_prefix(target_loss_decode, 'mix'))
         return losses
 
 
@@ -239,14 +304,33 @@ class DACS(UDADecorator):
         """
         # Enable automatic mixed precision training context.
 
+        optim_wrapper.zero_grad()
 
         source_data = data['source']
         target_data = data['target']
+        cur_iter = self.message_hub.get_info('iter')
+        if cur_iter == 0:
+            self._init_ema_weights()
+        if cur_iter > 0:
+            self._update_ema(cur_iter)
+
+        means, stds = get_mean_std(source_data['inputs'][0].device)
+        strong_parameters = {
+            'mix': None,
+            'color_jitter': random.uniform(0, 1),
+            'color_jitter_s': self.color_jitter_s,
+            'color_jitter_p': self.color_jitter_p,
+            'blur': random.uniform(0, 1) if self.blur else 0,
+            'mean': means[0].unsqueeze(0),  # assume same normalization
+            'std': stds[0].unsqueeze(0)
+        }
+
+
         with optim_wrapper.optim_context(self):
             source_data = self.data_preprocessor(source_data, True)
             source_losses = self._run_forward(source_data, mode='source_loss')  # type: ignore
         parsed_losses, log_vars = self.parse_losses(source_losses)  # type: ignore
-        optim_wrapper.update_params(parsed_losses)
+        optim_wrapper.backward(parsed_losses)
 
         target_data['inputs'] = torch.stack(target_data['inputs'])
         for m in self.get_ema_model().modules():
@@ -256,15 +340,13 @@ class DACS(UDADecorator):
                 m.training = False
         with optim_wrapper.optim_context(self):
             target_data = self.data_preprocessor(target_data, True)
-            target_losses = self._run_forward(target_data, mode='target_loss')
+            target_losses = self.target_loss([source_data, target_data])
         parsed_losses, t_log_vars = self.parse_losses(target_losses)  # type: ignore
-        optim_wrapper.update_params(parsed_losses)
+        optim_wrapper.backward(parsed_losses)
         log_vars.update(t_log_vars)
 
-        cur_iter = self.message_hub.get_info('iter')
-        self._update_ema(cur_iter)
-
-
+        optim_wrapper.step()
+        log_vars.pop('loss', None)
 
         return log_vars
 
