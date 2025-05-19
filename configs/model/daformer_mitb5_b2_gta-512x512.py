@@ -52,3 +52,4 @@ data_preprocessor = dict(
     bgr_to_rgb=True,
     size_divisor=32,
     test_cfg=dict(size_divisor=32))
+

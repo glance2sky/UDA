@@ -3,7 +3,7 @@ _base_ = [
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_160k.py'
 ]
 # crop_size = (640, 640)
-crop_size = (256, 128)
+crop_size = (640,640)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
@@ -26,7 +26,7 @@ test_pipeline = [
 ]
 
 # By default, models are trained on 4 GPUs with 8 images per GPU
-train_dataloader = dict(batch_size=4, dataset=dict(pipeline=train_pipeline))
+train_dataloader = dict(batch_size=8, dataset=dict(pipeline=train_pipeline))
 val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 test_dataloader = val_dataloader
 

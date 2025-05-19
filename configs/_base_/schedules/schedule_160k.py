@@ -8,7 +8,7 @@ param_scheduler = [
         eta_min=1e-4,
         power=0.9,
         begin=0,
-        end=80000,
+        end=60000,
         by_epoch=False)
 ]
 # training schedule for 160k

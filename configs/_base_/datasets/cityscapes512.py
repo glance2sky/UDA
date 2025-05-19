@@ -2,8 +2,8 @@
 
 dataset_type = 'CityscapesDataset'
 data_root = 'data/cityscapes/'
-# crop_size = (512, 1024)
-crop_size = (256,256)
+crop_size = (512, 1024)
+# crop_size = (256,256)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
@@ -64,6 +64,7 @@ val_dataloader = dict(
             img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
+
 
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
 test_evaluator = val_evaluator

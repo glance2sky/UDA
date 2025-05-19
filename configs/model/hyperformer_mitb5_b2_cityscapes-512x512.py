@@ -1,7 +1,7 @@
 
 
 _base_ = [
-    '../_base_/models/mib_b5.py', '../_base_/datasets/cityscapes512.py',
+    '../_base_/models/mib_b5.py', '../_base_/datasets/gtav.py',
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_160k.py',
 ]
 
