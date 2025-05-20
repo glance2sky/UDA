@@ -264,6 +264,7 @@ class DACS(UDADecorator):
                 target=torch.stack((gt_pixel_weight[i], pseudo_weight[i])))
         mixed_img = torch.cat(mixed_img)
         mixed_lbl = torch.cat(mixed_lbl)
+        data_samples[0].gt_sem_seg.data = mixed_lbl[0]
 
         target_x = self.get_model().extract_feat(mixed_img)
         target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,

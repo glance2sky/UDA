@@ -15,15 +15,15 @@ model = dict(
     blur=True,
     color_jitter_strength=0.2,
     color_jitter_probability=0.2,
-    pseudo_threshold=0.968,
-    pseudo_weight_ignore_top=15,
-    pseudo_weight_ignore_bottom=120
+    pseudo_threshold=0.7,
+    pseudo_weight_ignore_top=0,
+    pseudo_weight_ignore_bottom=0
 )
 train_cfg = dict(
     type='IterBasedTrainLoop',
     max_iters=60000,
-    val_interval=500,
-    val_begin=55000)
+    val_interval=10000,
+    val_begin=30000)
 default_hooks = dict(
     checkpoint=dict(
         type='CheckpointHook',
@@ -65,3 +65,5 @@ data_preprocessor = dict(
     bgr_to_rgb=True,
     size_divisor=32,
     test_cfg=dict(size_divisor=32))
+
+load_from = 'workdir/HHHead_cityscapes.pth'
