@@ -14,12 +14,12 @@ from mmengine.optim import OptimWrapper
 class UDADecorator(BaseSegmentor):
 
     def __init__(self, uda_model,
-                 data_preprocessor: OptConfigType = None,):
+                 data_preprocessor: OptConfigType = None,
+                 init_cfg = None):
         super(BaseSegmentor, self).__init__(
-            data_preprocessor
+            data_preprocessor, init_cfg
         )
 
-        self.model = build_segmentor(deepcopy(uda_model))
         self.test_cfg = uda_model['test_cfg']
         self.num_classes = uda_model['decode_head']['num_classes']
 

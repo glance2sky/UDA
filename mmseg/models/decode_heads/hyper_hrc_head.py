@@ -1,3 +1,5 @@
+import copy
+
 
 from ..utils.tree import Tree
 from mmseg.ops import resize
@@ -266,6 +268,8 @@ class HHHead(BaseDecodeHead):
             tree_params['json'] = json.load(f)
 
         self.tree = Tree(**tree_params)
+
+
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
         self.hyper_mlr = HyperMLR(512,self.tree.M, c=0.5)
 
@@ -323,6 +327,23 @@ class HHHead(BaseDecodeHead):
         # Project to Poincaré ball
         return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
 
+    def generate_hrc_labels(self, label):
+        labels = []
+        B = label.shape[0]
+        for b in range(B):
+            b_label = []
+            for i in self.tree.depth_idx.keys():
+                temp_label = copy.deepcopy(label[b][0])
+                for ic, ia in self.tree.abs2con[i].items():
+                    temp_label[temp_label == ic] = ia
+
+                b_label.append(temp_label.unsqueeze(0))
+            labels.append(torch.cat(b_label, dim=0).unsqueeze(0))
+
+
+        return torch.cat(labels, dim=0)
+
+
     def hrc_softmax(self, logits):
         logits = logits - torch.max(logits, dim=1, keepdim=True).values
         exp_logits = torch.exp(logits)
@@ -335,7 +356,7 @@ class HHHead(BaseDecodeHead):
         log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-4)))
         log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda())
         joints = torch.exp(log_sum_p)
-        return joints[:, :19, :, :]
+        return joints
 
     def run(self, projected_embedding, input_size):
         logits = self.hyper_mlr(projected_embedding)
@@ -448,8 +469,9 @@ class HHHead(BaseDecodeHead):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        _, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
-        losses = self.loss_by_feat(cprobs, batch_data_samples, seg_weight)
+        # TODO:
+        probs, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
+        losses = self.loss_by_feat(probs, batch_data_samples, seg_weight)
         return losses
 
     def loss_by_feat(self, seg_logits: Tensor,
@@ -467,8 +489,13 @@ class HHHead(BaseDecodeHead):
             dict[str, Tensor]: a dictionary of loss components
         """
 
+
+
         seg_label = self._stack_batch_gt(batch_data_samples)
         loss = dict()
+
+        labels = self.generate_hrc_labels(seg_label)
+        new_data = self.reflect_labels_logits(seg_logits, labels)
         # criterion = torch.nn.NLLLoss(ignore_index=255)
         # loss['ce'] = criterion(torch.log(seg_logits + 1e-8), seg_label.squeeze())
 
@@ -522,8 +549,72 @@ class HHHead(BaseDecodeHead):
 
         return self.predict_by_feat(probs, batch_img_metas)
 
-    def loss_with_weight(self, x, gt_semantic_seg, seg_weight=None):
-        probs, cprobs = self.forward(x)
+
+    def reflect_labels_logits(self, seg_logits: Tensor, labels: Tensor) -> dict:
+
+        B = labels.shape[0]
+        depth = labels.shape[1]
+        data = []
+        batch_data = []
+        for b in range(B):
+            for d in range(depth):
+                values, indices = torch.sort(torch.Tensor(list(set(self.tree.abs2con[d+1].values()))))
+                tem_seg = torch.cat([seg_logits[b][i].unsqueeze(0) for i in sorted(set(self.tree.abs2con[d+1].values())) if i != 255], dim=0)
+                for i,v in zip(indices, values):
+                    if i != 255:
+                        labels[b][d][labels[b][d] == v] = i
+                data.append({'input_feat':tem_seg, 'label':labels[b][d]})
+        for d in range(depth):
+            temp_input = []
+            temp_label = []
+            for b in range(B):
+                temp_input.append(data[d+b*depth]['input_feat'].unsqueeze(0))
+                temp_label.append(data[d+b*depth]['label'].unsqueeze(0))
+            batch_data.append([torch.cat(temp_input, dim=0), torch.cat(temp_label, dim=0)])
+
+
+
+        return batch_data
+
+
+
+
+
+
+
+    def hierarchy_loss(self, seg_logits: Tensor,
+                     batch_data_samples: SampleList, seg_weight=None) -> dict :
+
+        seg_label = self._stack_batch_gt(batch_data_samples)
+        loss = dict()
+
+        h_labels = self.generate_hrc_labels(seg_label)
+        new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
+        for i, data in enumerate(new_batch_data):
+            seg_logits = data[0]
+            seg_label = data[1]
+            label_flat = seg_label.view(seg_label.shape[0], -1)
+
+            num_target = seg_logits.shape[1]
+            valid_mask = (label_flat < num_target)
+            valid_labels = label_flat[valid_mask]
+
+            log_probs = torch.log(torch.clamp(seg_logits, min=1e-8))
+            flat_cprobs = log_probs.permute(0, 2, 3, 1).contiguous().view((log_probs.shape[0], -1, log_probs.shape[1]))
+            valid_probs = flat_cprobs[valid_mask]
+
+            pos_logp = torch.gather(valid_probs, dim=1, index=valid_labels.unsqueeze(1))
+            d_loss = -torch.mean(pos_logp)
+            loss['{}_depth'.format(i+1)] = d_loss
+            if 'loss_ce' not in loss.keys():
+                loss['loss_ce'] = d_loss
+            else:
+                loss['loss_ce'] = loss['loss_ce'] + d_loss
+
+        return loss
+
+
+
 
 
 

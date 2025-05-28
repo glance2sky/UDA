@@ -14,8 +14,8 @@ model = dict(
 train_cfg = dict(
     type='IterBasedTrainLoop',
     max_iters=60000,
-    val_interval=500,
-    val_begin=55000)
+    val_interval=10000,
+    val_begin=0)
 default_hooks = dict(
     checkpoint=dict(
         type='CheckpointHook',
@@ -29,14 +29,10 @@ optim_wrapper = dict(
     optimizer=dict(
         type='AdamW', lr=0.0001, betas=(0.9, 0.999), weight_decay=0.0001),
     paramwise_cfg=dict(
-        custom_keys={
-            'img_encoder': dict(lr_mult=0.1, decay_mult=1.0),
-            'pos_embed': dict(decay_mult=0.),
-            'cls_token': dict(decay_mult=0.),
-            'norm': dict(decay_mult=0.)
-        }),
-    loss_scale='dynamic',
-    clip_grad=dict(max_norm=0.01, norm_type=2))
+        custom_keys=dict(
+            head=dict(lr_mult=10.0),
+            pos_block=dict(decay_mult=0.0),
+            norm=dict(decay_mult=0.0))))
 
 param_scheduler = [
     dict(
@@ -57,3 +53,8 @@ data_preprocessor = dict(
     bgr_to_rgb=True,
     size_divisor=32,
     test_cfg=dict(size_divisor=32))
+
+visualizer = dict(
+    type='Visualizer',
+    vis_backends=[dict(type='WandbVisBackend')]
+)

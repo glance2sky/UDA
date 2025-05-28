@@ -17,7 +17,8 @@ model = dict(
     color_jitter_probability=0.2,
     pseudo_threshold=0.968,
     pseudo_weight_ignore_top=15,
-    pseudo_weight_ignore_bottom=120
+    pseudo_weight_ignore_bottom=120,
+    # init_cfg=dict(type='Pretrained', checkpoint='')
 )
 train_cfg = dict(
     type='IterBasedTrainLoop',

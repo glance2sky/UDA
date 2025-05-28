@@ -28,8 +28,9 @@ from mmseg.registry import DATASETS
 # runner.test()
 
 # config = Config.fromfile('configs/model/hyperformer_mitb5_b2_cityscapes-512x512.py')
+#
 # runner = Runner.from_cfg(config)
-# runner.test()
+# runner.train()
 
 config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
 runner = Runner.from_cfg(config)

@@ -46,6 +46,8 @@ class Tree(object):
         self.init_graph()
         self.init_metric_families()
 
+        self.abs2con = self.bulid_depth_nodes()
+
         # fig, ax = plt.subplots(figsize=(100, 80))
         #
         # # 假设 tree 是已构建的层次结构对象，show_idx 是目标节点索引
@@ -158,6 +160,55 @@ class Tree(object):
                 node.metric_cousins = metric_cousins
             else:
                 node.metric_cousins = metric_siblings
+
+    def search_leaves(self, node):
+        nodes = []
+
+        if len(node.children) == 0:
+            return [node.idx]
+        else:
+            for name in node.children:
+                nodes = nodes + self.search_leaves(self.nodes[name])
+
+        return nodes
+
+    def depth_nodes(self):
+
+        depth = {}
+        for node in self.nodes.values():
+            if node.depth == 0:
+                continue
+            if node.depth not in depth.keys():
+                depth[node.depth] = [node.idx]
+            else:
+                depth[node.depth].append(node.idx)
+
+        self.depth_idx = depth
+        return depth
+
+
+    def bulid_depth_nodes(self):
+        pre_depth = []
+
+        leave2depth = dict()
+        depth_nodes = self.depth_nodes()
+        for depth in depth_nodes.keys():
+            idx_list = depth_nodes[depth]
+            nodes_list = [self.nodes[self.i2n[idx]] for idx in idx_list]
+            nodes_list = nodes_list + pre_depth
+            pre_depth = []
+            cur_depth = dict()
+            for node in nodes_list:
+                cur_depth.update({i:node.idx for i in self.search_leaves(node)})
+                if len(node.children) == 0 :
+                    pre_depth.append(node)
+
+            leave2depth[depth] = cur_depth
+        return leave2depth
+
+
+
+
 
 
 
