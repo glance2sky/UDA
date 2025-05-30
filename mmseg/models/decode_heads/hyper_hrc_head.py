@@ -471,7 +471,11 @@ class HHHead(BaseDecodeHead):
         """
         # TODO:
         probs, cprobs = self.forward(inputs, batch_data_samples[0].img_shape)
+
+        debug_info = self.debug_class(1, probs, batch_data_samples)
+
         losses = self.loss_by_feat(probs, batch_data_samples, seg_weight)
+        losses.update(debug_info)
         return losses
 
     def loss_by_feat(self, seg_logits: Tensor,
@@ -612,6 +616,30 @@ class HHHead(BaseDecodeHead):
                 loss['loss_ce'] = loss['loss_ce'] + d_loss
 
         return loss
+
+    def debug_class(self, d_class, probs, batch_data_samples):
+
+
+
+        ancesor = self.tree.hmat[d_class].view(1,-1,1,1).cuda()
+        d_class_probs = ancesor * probs
+
+        class_mask = torch.cat([data_sample.gt_sem_seg.data == d_class for data_sample in batch_data_samples],
+                               dim=0).unsqueeze(1).float()
+        mask_class_probs = class_mask * d_class_probs
+        sum_class_probs = torch.sum(mask_class_probs, dim=(2,3))
+        mean_class_probs = sum_class_probs / torch.sum(class_mask, dim=(2,3))
+
+        debug_info = {}
+
+        for i in range(ancesor.shape[1]):
+            if ancesor.squeeze()[i] != 0:
+                debug_info[self.tree.i2n[i]] = mean_class_probs[0][i]
+
+
+
+        return debug_info
+
 
 
 
