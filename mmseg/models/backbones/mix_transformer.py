@@ -9,6 +9,7 @@
 import math
 import warnings
 from functools import partial
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -215,11 +216,11 @@ class MixVisionTransformer2(BaseModule):
 
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be setting at the same time'
-        if isinstance(pretrained, str):
-            warnings.warn('DeprecationWarning: pretrained is a deprecated, '
-                          'please use "init_cfg" instead')
-        else:
-            raise TypeError('pretrained must be a str or None')
+        # if isinstance(pretrained, Union[]):
+        #     warnings.warn('DeprecationWarning: pretrained is a deprecated, '
+        #                   'please use "init_cfg" instead')
+        # else:
+        #     raise TypeError('pretrained must be a str or None')
 
         self.num_classes = num_classes
         self.depths = depths

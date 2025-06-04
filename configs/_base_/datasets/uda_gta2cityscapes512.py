@@ -57,16 +57,18 @@ tta_pipeline = [
         ])
 ]
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     persistent_workers=True,
     # collate_fn=dict(type='default_collate'),
-    sampler=dict(type='InfiniteSampler', shuffle=True),
+    sampler=dict(type='InfiniteSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
+        rare_class_sampling=dict(min_pixels=3000, class_temp=0.01, min_crop_ratio=0.5),
         source_dataset=dict(
             type=source_type,
             data_root=source_root,
+            # serialize_data=False,
             data_prefix=dict(
                 img_path='images', seg_map_path='labels'),
             pipeline=source_train_pipeline),
@@ -85,11 +87,18 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type='CityscapesDataset',
+        # type=source_type,
         data_root='data/cityscapes/',
+        # indices=1,
+        # data_root=source_root,
+        # indices=300,
         data_prefix=dict(
             img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
+        # data_prefix=dict(
+        #     img_path='images', seg_map_path='labels'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
 test_evaluator = val_evaluator
+

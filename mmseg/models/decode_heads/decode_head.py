@@ -259,6 +259,7 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             dict[str, Tensor]: a dictionary of loss components
         """
         seg_logits = self.forward(inputs)
+
         losses = self.loss_by_feat(seg_logits, batch_data_samples)
         return losses
 

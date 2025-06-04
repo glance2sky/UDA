@@ -1,4 +1,7 @@
 from mmseg.registry import DATASETS
+import mmengine
+from mmengine import print_log
+
 from .basesegdataset import BaseSegDataset
 
 
@@ -27,3 +30,47 @@ class GTAVDataset(BaseSegDataset):
                  **kwargs) -> None:
         super().__init__(
             img_suffix=img_suffix, seg_map_suffix=seg_map_suffix, **kwargs)
+
+        self.img_infos = self.load_img_infos('data/gta/images', '.png',
+                                           'data/gta/labels',
+                                           '_labelTrainIds.png', None)
+
+    def load_img_infos(self, img_dir, img_suffix, ann_dir, seg_map_suffix,
+                         split):
+        """Load annotation from directory.
+
+        Args:
+            img_dir (str): Path to image directory
+            img_suffix (str): Suffix of images.
+            ann_dir (str|None): Path to annotation directory.
+            seg_map_suffix (str|None): Suffix of segmentation maps.
+            split (str|None): Split txt file. If split is specified, only file
+                with suffix in the splits will be loaded. Otherwise, all images
+                in img_dir/ann_dir will be loaded. Default: None
+
+        Returns:
+            list[dict]: All image info of dataset.
+        """
+
+        img_infos = []
+        if split is not None:
+            with open(split) as f:
+                for line in f:
+                    img_name = line.strip()
+                    img_info = dict(filename=img_name + img_suffix)
+                    if ann_dir is not None:
+                        seg_map = img_name + seg_map_suffix
+                        img_info['ann'] = dict(seg_map=seg_map)
+                    img_infos.append(img_info)
+        else:
+            for img in mmengine.scandir(img_dir, img_suffix, recursive=True):
+                img_info = dict(filename=img)
+                if ann_dir is not None:
+                    seg_map = img.replace(img_suffix, seg_map_suffix)
+                    img_info['ann'] = dict(seg_map=seg_map)
+                img_infos.append(img_info)
+
+        print_log(
+            f'Loaded {len(img_infos)} images from {img_dir}')
+        return img_infos
+

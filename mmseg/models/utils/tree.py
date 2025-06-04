@@ -186,7 +186,6 @@ class Tree(object):
         self.depth_idx = depth
         return depth
 
-
     def bulid_depth_nodes(self):
         pre_depth = []
 
@@ -199,16 +198,12 @@ class Tree(object):
             pre_depth = []
             cur_depth = dict()
             for node in nodes_list:
-                cur_depth.update({i:node.idx for i in self.search_leaves(node)})
-                if len(node.children) == 0 :
+                cur_depth.update({i: node.idx for i in self.search_leaves(node)})
+                if len(node.children) == 0:
                     pre_depth.append(node)
 
             leave2depth[depth] = cur_depth
         return leave2depth
-
-
-
-
 
 
 

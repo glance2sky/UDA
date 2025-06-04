@@ -94,11 +94,10 @@ class DACS(UDADecorator):
                  pseudo_weight_ignore_bottom=120,
                  train_cfg: OptConfigType = None,
                  test_cfg: OptConfigType = None,
-                 init_cfg = None
+                 init_cfg = None,
                  ):
         super(DACS, self).__init__(uda_model,
-                                   data_preprocessor,
-                                   init_cfg)
+                                   data_preprocessor,init_cfg)
 
         self.train_cfg = {}
         self.message_hub = MessageHub.get_current_instance()
@@ -118,14 +117,14 @@ class DACS(UDADecorator):
         self.color_jitter_s = color_jitter_strength
         self.color_jitter_p = color_jitter_probability
         # self.debug_img_interval = cfg['debug_img_interval']
-        # self.print_grad_magnitude = cfg['print_grad_magnitude']
+        self.print_grad_magnitude = False
         # assert self.mix == 'class'
 
         # self.debug_fdist_mask = None
         # self.debug_gt_rescale = None
 
         # self.class_probs = {}
-        ema_cfg = deepcopy(uda_model)
+        ema_cfg = deepcopy(uda_model) # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将配置文件中的model配置字典加入了。
         self.model = build_segmentor(uda_model)
         self.ema_model = build_segmentor(ema_cfg)
 
@@ -136,13 +135,15 @@ class DACS(UDADecorator):
         #     self.imnet_model = None
 
         # self.transforms = transforms.Normalize(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
-
     def get_model(self):
         return self.model
+
 
     def get_ema_model(self):
         return self.ema_model
 
+    # def get_imnet_model(self):
+    #     return self.imnet_model
 
     def _init_ema_weights(self):
         for param in self.get_ema_model().parameters():
@@ -168,6 +169,7 @@ class DACS(UDADecorator):
                     alpha_teacher * ema_param[:].data[:] + \
                     (1 - alpha_teacher) * param[:].data[:]
 
+# TODO: 为了保持框架一致，train_step方法不应该被重构，loss应该被重构，模仿encoder_decoder
     def source_loss(self, inputs: Tensor, data_samples: SampleList) -> dict:
         """Calculate losses from a batch of inputs and data samples.
 
@@ -218,7 +220,8 @@ class DACS(UDADecorator):
         target_data = data[1]
         inputs = target_data['inputs']
         data_samples = target_data['data_samples']
-        gt_semantic_seg = source_data['data_samples'][0].gt_sem_seg.data.unsqueeze(0)
+        # gt_semantic_seg = source_data['data_samples'][0].gt_sem_seg.data.unsqueeze(0)
+        gt_semantic_seg = torch.cat([gt_l.gt_sem_seg.data.unsqueeze(0) for gt_l in source_data['data_samples']])
         batch_size = inputs.shape[0]
 
         means, stds = get_mean_std(source_data['inputs'][0].device)
@@ -233,8 +236,9 @@ class DACS(UDADecorator):
         }
         with torch.no_grad():
             target_feat = self.get_ema_model().extract_feat(inputs)
-            probs, _ = self.get_ema_model().decode_head.forward(target_feat, data_samples[0].img_shape)
+            probs, _ = self.get_ema_model().decode_head.forward(target_feat, data_samples[0].pad_shape)
 
+            probs = probs[:,:19,:,:]
             pseudo_prob, pseudo_label = torch.max(probs, dim=1)
             ps_large_p = pseudo_prob.ge(self.pseudo_threshold).long() == 1
             ps_size = np.size(np.array(pseudo_label.cpu()))
@@ -265,6 +269,9 @@ class DACS(UDADecorator):
                     target=torch.stack((gt_pixel_weight[i], pseudo_weight[i])))
             mixed_img = torch.cat(mixed_img)
             mixed_lbl = torch.cat(mixed_lbl)
+            for i in range(len(data_samples)):
+                data_samples[i].gt_sem_seg.data = mixed_lbl[i]
+
 
         target_x = self.get_model().extract_feat(mixed_img)
         target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,
@@ -315,10 +322,21 @@ class DACS(UDADecorator):
         if cur_iter > 0:
             self._update_ema(cur_iter)
 
+
+
         source_data = self.data_preprocessor(source_data, True)
         source_losses = self._run_forward(source_data, mode='source_loss')  # type: ignore
-        parsed_losses, log_vars = self.parse_losses(source_losses)  # type: ignore
-        optim_wrapper.backward(parsed_losses)
+        source_parsed_losses, log_vars = self.parse_losses(source_losses)  # type: ignore
+        # optim_wrapper.zero_grad()
+        optim_wrapper.backward(source_parsed_losses)
+        # optim_wrapper.step()
+        if self.print_grad_magnitude:
+            params = self.get_model().backbone.parameters()
+            seg_grads = [
+                p.grad.detach().clone() for p in params if p.grad is not None
+            ]
+            grad_mag = calc_grad_magnitude(seg_grads)
+            print(f'Source Seg. Grad.: {grad_mag}')
 
         target_data['inputs'] = torch.stack(target_data['inputs'])
         for m in self.get_ema_model().modules():
@@ -327,10 +345,19 @@ class DACS(UDADecorator):
             if isinstance(m, DropPath):
                 m.training = False
 
+        # with optim_wrapper.optim_context(self):
         target_data = self.data_preprocessor(target_data, True)
         target_losses = self.target_loss([source_data, target_data])
-        parsed_losses, t_log_vars = self.parse_losses(target_losses)  # type: ignore
-        optim_wrapper.backward(parsed_losses)
+        target_parsed_losses, t_log_vars = self.parse_losses(target_losses)  # type: ignore
+
+        optim_wrapper.backward(target_parsed_losses)
+        if self.print_grad_magnitude:
+            params = self.get_model().backbone.parameters()
+            seg_grads = [
+                p.grad.detach().clone() for p in params if p.grad is not None
+            ]
+            grad_mag = calc_grad_magnitude(seg_grads)
+            print(f'Target Seg. Grad.: {grad_mag}')
         log_vars.update(t_log_vars)
 
         optim_wrapper.step()

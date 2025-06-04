@@ -28,10 +28,16 @@ from mmseg.registry import DATASETS
 # runner.test()
 
 # config = Config.fromfile('configs/model/hyperformer_mitb5_b2_cityscapes-512x512.py')
-#
 # runner = Runner.from_cfg(config)
-# runner.train()
+# runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth')
+# runner.test()
 
-config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
+config = Config.fromfile('workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/vis_data/config.py')
 runner = Runner.from_cfg(config)
+# runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 runner.train()
+
+# config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()

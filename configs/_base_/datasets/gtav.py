@@ -55,6 +55,7 @@ val_dataloader = dict(
     dataset=dict(
         type='CityscapesDataset',
         data_root='data/cityscapes/',
+        # indices=1,
         data_prefix=dict(
             img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
         pipeline=test_pipeline))

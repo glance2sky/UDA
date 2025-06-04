@@ -2,13 +2,41 @@
 import collections
 import copy
 from typing import List, Optional, Sequence, Union
+import os.path as osp
 
+import json
 import numpy as np
+import torch
 
+from mmengine import print_log
 from mmengine.dataset import ConcatDataset, force_full_init, BaseDataset
 from mmseg.registry import DATASETS, TRANSFORMS
 
+from .cityscapes import CityscapesDataset
 
+def get_rcs_class_probs(data_root, temperature):
+    with open(osp.join(data_root, 'sample_class_stats.json'), 'r') as of:
+        sample_class_stats = json.load(of)
+    overall_class_stats = {}
+    for s in sample_class_stats:
+        s.pop('file')
+        for c, n in s.items():
+            c = int(c)
+            if c not in overall_class_stats:
+                overall_class_stats[c] = n
+            else:
+                overall_class_stats[c] += n
+    overall_class_stats = {
+        k: v
+        for k, v in sorted(
+            overall_class_stats.items(), key=lambda item: item[1])
+    }
+    freq = torch.tensor(list(overall_class_stats.values()))
+    freq = freq / torch.sum(freq)
+    freq = 1 - freq
+    freq = torch.softmax(freq / temperature, dim=-1)
+
+    return list(overall_class_stats.keys()), freq.numpy()
 
 @DATASETS.register_module()
 class MultiImageMixDataset:
@@ -154,6 +182,7 @@ class UDADataset:
                  source_dataset: Union[dict, BaseDataset],
                  target_dataset: Union[dict, BaseDataset],
                  lazy_init: bool = False,
+                 rare_class_sampling=None,
                  ignore_keys: Union[str, List[str], None] = None):
 
         self.datasets = []
@@ -184,41 +213,84 @@ class UDADataset:
         self.source_dataset = self.datasets[0]
         self.target_dataset = self.datasets[1]
 
+        self.ignore_index = self.target_dataset.ignore_index
+        self.CLASSES = self.target_dataset.METAINFO['classes']
+        self.PALETTE = self.target_dataset.METAINFO['palette']
+        assert self.target_dataset.ignore_index == self.source_dataset.ignore_index
+        assert self.target_dataset.METAINFO['classes'] == self.source_dataset.METAINFO['classes']
+        assert self.target_dataset.METAINFO['palette'] == self.source_dataset.METAINFO['palette']
 
-        self.ignore_keys = []
+        rcs_cfg = rare_class_sampling
+        self.rcs_enabled = rcs_cfg is not None
+        if self.rcs_enabled:
+            self.rcs_class_temp = rcs_cfg['class_temp']
+            self.rcs_min_crop_ratio = rcs_cfg['min_crop_ratio']
+            self.rcs_min_pixels = rcs_cfg['min_pixels']
 
-        meta_keys: set = set()
-        for dataset in self.datasets:
-            meta_keys |= dataset.metainfo.keys()
-        # Only use metainfo of first dataset.
-        self._metainfo = self.datasets[0].metainfo
-        for i, dataset in enumerate(self.datasets, 1):
-            for key in meta_keys:
-                if key in self.ignore_keys:
-                    continue
-                if key not in dataset.metainfo:
-                    raise ValueError(
-                        f'{key} does not in the meta information of '
-                        f'the {i}-th dataset')
-                first_type = type(self._metainfo[key])
-                cur_type = type(dataset.metainfo[key])
-                if first_type is not cur_type:  # type: ignore
-                    raise TypeError(
-                        f'The type {cur_type} of {key} in the {i}-th dataset '
-                        'should be the same with the first dataset '
-                        f'{first_type}')
-                if (isinstance(self._metainfo[key], np.ndarray)
-                        and not np.array_equal(self._metainfo[key],
-                                               dataset.metainfo[key])
-                        or (not isinstance(self._metainfo[key], np.ndarray)
-                            and self._metainfo[key] != dataset.metainfo[key])):
-                    raise ValueError(
-                        f'The meta information of the {i}-th dataset does not '
-                        'match meta information of the first dataset')
+            self.rcs_classes, self.rcs_classprob = get_rcs_class_probs(
+                'data/gta', self.rcs_class_temp)
+            print_log(f'RCS Classes: {self.rcs_classes}')
+            print_log(f'RCS ClassProb: {self.rcs_classprob}')
+
+            with open(osp.join('data/gta', 'samples_with_class.json'), 'r') as of:
+                samples_with_class_and_n = json.load(of)
+            samples_with_class_and_n = {
+                int(k): v
+                for k, v in samples_with_class_and_n.items()
+                if int(k) in self.rcs_classes
+            }
+            self.samples_with_class = {}
+            for c in self.rcs_classes:
+                self.samples_with_class[c] = []
+                for file, pixels in samples_with_class_and_n[c]:
+                    if pixels > self.rcs_min_pixels:
+                        self.samples_with_class[c].append(file.split('/')[-1])
+                assert len(self.samples_with_class[c]) > 0
+            self.file_to_idx = {}
+            for i, dic in enumerate(self.source_dataset.img_infos):
+                file = dic['ann']['seg_map']
+                if isinstance(self.source_dataset, CityscapesDataset):
+                    file = file.split('/')[-1]
+                self.file_to_idx[file] = i
+
+            self.samples_with_class_dist = {}
+            for cls, num in samples_with_class_and_n.items():
+                self.samples_with_class_dist[cls] = [n[1] for n in num if n[1] >= self.rcs_min_pixels]
+
+
+
+
+
+
+
 
         self._fully_initialized = False
         if not lazy_init:
             self.full_init()
+
+    def get_rare_class_sample(self):
+        c = np.random.choice(self.rcs_classes, p=self.rcs_classprob)
+        f1 = np.random.choice(self.samples_with_class[c])
+        i1 = int(f1.split('_label')[0])-1
+        s1 = self.source_dataset[i1]
+        assert f1 == s1['data_samples'].seg_map_path.split('/')[-1]
+        if self.rcs_min_crop_ratio > 0: # 实际上这段代码没有用
+            for j in range(100):
+                n_class = torch.sum(s1['data_samples'].gt_sem_seg.data == c)
+                # mmcv.print_log(f'{j}: {n_class}', 'mmseg')
+                if n_class > self.rcs_min_pixels * self.rcs_min_crop_ratio: # 源域图像的该类别像素数量本来就大于min_pixels
+                    break
+                # Sample a new random crop from source image i1.
+                # Please note, that self.source.__getitem__(idx) applies the
+                # preprocessing pipeline to the loaded image, which includes
+                # RandomCrop, and results in a new crop of the image.
+
+                s1 = self.source_dataset[i1]
+        i2 = np.random.choice(range(len(self.target_dataset))) # 目标域不进行稀有类采样，随即采样
+        s2 = self.target_dataset[i2]
+
+        # 很奇怪，只有源域GTA的gt_semantic_seg被返回了，目标域cityscapes没有用到
+        return {'source':s1, 'target':s2}
 
     @property
     def metainfo(self) -> dict:
@@ -228,7 +300,7 @@ class UDADataset:
             dict: Meta information of first dataset.
         """
         # Prevent `self._metainfo` from being modified by outside.
-        return copy.deepcopy(self._metainfo)
+        return {}
 
     def full_init(self):
         """Loop to ``full_init`` each dataset."""
@@ -244,6 +316,9 @@ class UDADataset:
         return len(self.source_dataset) * len(self.target_dataset)
 
     def __getitem__(self,idx):
-        s1 = self.source_dataset[idx // len(self.target_dataset)]
-        s2 = self.target_dataset[idx % len(self.target_dataset)]
+        if self.rcs_enabled:
+            return self.get_rare_class_sample()
+        else:
+            s1 = self.source_dataset[idx // len(self.target_dataset)]
+            s2 = self.target_dataset[idx % len(self.target_dataset)]
         return {'source':s1, 'target':s2}
