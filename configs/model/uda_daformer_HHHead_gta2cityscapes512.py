@@ -17,9 +17,14 @@ model = dict(
     blur=True,
     color_jitter_strength=0.2,
     color_jitter_probability=0.2,
-    pseudo_threshold=0.7,
+    pseudo_threshold=0.968,
     pseudo_weight_ignore_top=15,
     pseudo_weight_ignore_bottom=120,
+    # imnet_feature_dist_lambda=0.005,
+    imnet_feature_dist_lambda=0,
+    # imnet_feature_dist_lambda=0,
+    imnet_feature_dist_classes=[6, 7, 11, 12, 13, 14, 15, 16, 17, 18],
+    imnet_feature_dist_scale_min_ratio=0.75,
 )
 train_cfg = dict(
     type='IterBasedTrainLoop',
@@ -65,10 +70,13 @@ data_preprocessor = dict(
     size_divisor=32,
     test_cfg=dict(size_divisor=32))
 
-visualizer = dict(
-    type='Visualizer',
-    vis_backends=[dict(type='TensorboardVisBackend')]
-)
+custom_hooks = [dict(type='DebugVisualizationHook')]
 
-load_from = 'workdir/uda_hierarchy_rcs_crop/best_mIoU_iter_23000.pth'
+# visualizer = dict(
+#     type='Visualizer',
+#     vis_backends=[dict(type='TensorboardVisBackend')]
+# )
+
+# load_from = 'workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_34000.pth'
 # load_from = 'workdir/uda_hierarchy2_rcs_crop_grad_accum/best_mIoU_iter_9000.pth'
+# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_54000.pth'

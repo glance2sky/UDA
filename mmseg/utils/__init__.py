@@ -22,7 +22,7 @@ from .typing_utils import (ConfigType, ForwardResults, MultiConfig,
 
 # isort: off
 from .mask_classification import MatchMasks, seg_data_to_instance_data
-from .uda_transforms import denorm, get_class_masks, get_mean_std, strong_transform
+from .uda_transforms import denorm, get_class_masks, get_mean_std, strong_transform, downscale_label_ratio
 
 __all__ = [
     'collect_env',
@@ -71,5 +71,6 @@ __all__ = [
     'denorm',
     'get_class_masks',
     'get_mean_std',
-    'strong_transform'
+    'strong_transform',
+    'downscale_label_ratio'
 ]

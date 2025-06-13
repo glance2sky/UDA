@@ -19,7 +19,7 @@ from torch.nn.parameter import Parameter
 from torch.nn.init import kaiming_uniform_
 
 from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
-from mmseg.utils import ConfigType, SampleList
+from mmseg.utils import ConfigType, SampleList, add_prefix
 
 PROJ_EPS = 1e-3
 class ASPPWrapper(nn.Module):
@@ -450,10 +450,24 @@ class HHHead(BaseDecodeHead):
             dict[str, Tensor]: a dictionary of loss components
         """
         probs, cprobs = self.forward(inputs, batch_data_samples[0].pad_shape)
+        B = probs.shape[0]
+        for b in range(B):
+            cls_uni = torch.unique(batch_data_samples[b].gt_sem_seg.data)
+            if 16 in cls_uni:
+                cls_mask = (batch_data_samples[b].gt_sem_seg.data == 16)
+                num_cls = torch.sum(cls_mask)
+                label_num_cls = torch.sum(probs[b][:19].argmax(0)==16)
+                rig_num_cls = torch.sum(probs[b][:19].argmax(0)[cls_mask[0]] == 16)
+                iou = rig_num_cls / (num_cls + label_num_cls - rig_num_cls)
+                with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
+                    print('train in label: {} --- train in pred: {} --- right pred: {} --- iou: {}'.format(num_cls, label_num_cls, rig_num_cls, iou), file=file)
+
+
+
         debug_info = self.debug_class(16, probs, batch_data_samples)
         # losses = self.loss_by_feat(cprobs, batch_data_samples, seg_weight)
         losses = self.hierarchy_loss(probs, batch_data_samples, seg_weight)
-        losses.update(debug_info)
+        losses.update(add_prefix(debug_info, 'debug'))
         return losses
 
     def loss_by_feat(self, seg_logits: Tensor,
@@ -545,6 +559,10 @@ class HHHead(BaseDecodeHead):
         return torch.cat(labels, dim=0)
 
     def reflect_labels_logits(self, seg_logits: Tensor, labels: Tensor) -> list:
+
+        h1_label_mask = (labels[0][0] == 23)
+        h2_label_mask = (labels[0][1] == 16)
+        h3_label_mask = (labels[0][2] == 16)
 
         B = labels.shape[0]
         depth = labels.shape[1]

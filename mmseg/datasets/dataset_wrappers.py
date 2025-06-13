@@ -270,6 +270,7 @@ class UDADataset:
 
     def get_rare_class_sample(self):
         c = np.random.choice(self.rcs_classes, p=self.rcs_classprob)
+        # c = 16
         f1 = np.random.choice(self.samples_with_class[c])
         i1 = int(f1.split('_label')[0])-1
         s1 = self.source_dataset[i1]

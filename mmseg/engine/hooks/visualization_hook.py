@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import os.path as osp
+import re
 import warnings
 from typing import Optional, Sequence
 
@@ -127,3 +128,17 @@ class SegVisualizationHook(Hook):
                 show=self.show,
                 wait_time=self.wait_time,
                 step=self._test_index)
+
+@HOOKS.register_module()
+class DebugVisualizationHook(Hook):
+    def __init__(self, interval=1):
+        self.interval = 1
+        self.debug_pattern = re.compile(r'.*debug.*')
+
+    def after_train_iter(self, runner, batch_idx, data_batch=None, outputs=None):
+
+        if self.every_n_train_iters(runner, self.interval):
+
+            for key in outputs.keys():
+                if re.search(self.debug_pattern, key) is not None:
+                    runner.visualizer.add_scalar(key, outputs[key], runner.iter+1)

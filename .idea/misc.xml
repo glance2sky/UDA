@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="mmlab" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="mmlab" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="openmmlab" project-jdk-type="Python SDK" />
 </project>

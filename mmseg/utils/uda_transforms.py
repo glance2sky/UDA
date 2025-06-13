@@ -3,6 +3,7 @@ import kornia
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def strong_transform(param, data=None, target=None):
@@ -82,15 +83,33 @@ def gaussian_blur(blur, data=None, target=None):
     return data, target
 
 
-def get_class_masks(labels):
+def get_class_masks(labels, cur_iter, debug_class):
+
+    # for class_idx in debug_class:
+    #     with open("debug/class_mask_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
+    #         for b_idx in range(labels.shape[0]):
+    #             print(
+    #                 "the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx,
+    #                                                                                  class_idx in torch.unique(
+    #                                                                                      labels[b_idx])), file=file)
+
     class_masks = []
     for label in labels:
         classes = torch.unique(labels)
         nclasses = classes.shape[0]
-        class_choice = np.random.choice(
+        class_choice_i = np.random.choice(
             nclasses, int((nclasses + nclasses % 2) / 2), replace=False)
-        classes = classes[torch.Tensor(class_choice).long()]
-        class_masks.append(generate_class_mask(label, classes).unsqueeze(0))
+
+        classes_choice = classes[torch.Tensor(class_choice_i).long()]
+        if 16 in classes and 16 not in classes_choice:
+            classes_choice = torch.cat([classes_choice, torch.tensor([16], device=classes.device)], dim=0)
+        # for class_idx in debug_class:
+        #     with open("debug/class_mask_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
+        #         print(
+        #             "the class idx {} in the source label on step {}: {}".format(class_idx, cur_iter,
+        #                                                                              class_idx in classes), file=file)
+
+        class_masks.append(generate_class_mask(label, classes_choice).unsqueeze(0))
     return class_masks
 
 
@@ -113,3 +132,27 @@ def one_mix(mask, data=None, target=None):
         target = (stackedMask0 * target[0] +
                   (1 - stackedMask0) * target[1]).unsqueeze(0)
     return data, target
+
+
+def downscale_label_ratio(gt,
+                          scale_factor,
+                          min_ratio,
+                          n_classes,
+                          ignore_index=255):
+    assert scale_factor > 1
+    bs, orig_c, orig_h, orig_w = gt.shape
+    assert orig_c == 1
+    trg_h, trg_w = orig_h // scale_factor, orig_w // scale_factor
+    ignore_substitute = n_classes
+
+    out = gt.clone()  # otw. next line would modify original gt
+    out[out == ignore_index] = ignore_substitute
+    out = F.one_hot(
+        out.squeeze(1), num_classes=n_classes + 1).permute(0, 3, 1, 2)
+    assert list(out.shape) == [bs, n_classes + 1, orig_h, orig_w], out.shape
+    out = F.avg_pool2d(out.float(), kernel_size=scale_factor)
+    gt_ratio, out = torch.max(out, dim=1, keepdim=True)
+    out[out == ignore_substitute] = ignore_index
+    out[gt_ratio < min_ratio] = ignore_index
+    assert list(out.shape) == [bs, 1, trg_h, trg_w], out.shape
+    return out
