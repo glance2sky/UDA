@@ -15,6 +15,7 @@ data_preprocessor = dict(
 uda_model = dict(
     type='EncoderDecoder',
     pretrained='pretrained/mit_b5.pth',
+    # pretrained='workdir/daformer_checkpoints/latest.pth',
     data_preprocessor=data_preprocessor,
     # init_cfg=dict(type='pretrained',checkpoint='pretrained/mit_b5.pth'),
     backbone=dict(type='mit_b5', style='pytorch'),

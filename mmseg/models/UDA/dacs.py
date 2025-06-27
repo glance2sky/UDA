@@ -21,6 +21,7 @@ from mmseg.utils import (ForwardResults, OptConfigType, OptMultiConfig,
 from mmengine.optim import OptimWrapper
 # from mmengine.runner import Runner
 from mmengine.logging import MessageHub
+from mmengine.structures import PixelData
 
 import mmcv
 import numpy as np
@@ -40,6 +41,7 @@ from mmseg.models.UDA.uda_decorator import UDADecorator
 #                                                 get_mean_std, strong_transform)
 # from mmseg.models.utils.visualization import subplotimg
 # from mmseg.utils.utils import downscale_label_ratio
+from mmseg.visualization.hyper_hierarchy_visualizer import HHLocalVisualizer
 from mmseg.utils import (ConfigType, OptConfigType, OptMultiConfig,
                          OptSampleList, SampleList, add_prefix)
 # from mmseg.models.decode_heads import FloatingRegionScore, init_mask, select_pixels_to_label
@@ -98,12 +100,15 @@ class DACS(UDADecorator):
                  train_cfg: OptConfigType = None,
                  test_cfg: OptConfigType = None,
                  init_cfg = None,
+                 debug_iter = 200,
                  ):
         super(DACS, self).__init__(uda_model,
                                    data_preprocessor,init_cfg)
 
         self.train_cfg = {}
         self.message_hub = MessageHub.get_current_instance()
+        self.message_hub.update_info_dict({'debug_iter':debug_iter})
+        self.debug_iter = debug_iter
 
         # self.local_iter = 0
         # self.max_iters = cfg['max_iters'] # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将runner的max_iters加入了
@@ -125,6 +130,7 @@ class DACS(UDADecorator):
 
         self.debug_fdist_mask = None
         self.debug_gt_rescale = None
+        self.visualizer = HHLocalVisualizer.get_current_instance()
 
         # self.class_probs = {}
         ema_cfg = deepcopy(uda_model) # cfg配置文件里面暂时没有这个参数，可能是后面手动添加的。经过检查确实前期将配置文件中的model配置字典加入了。
@@ -229,8 +235,8 @@ class DACS(UDADecorator):
         losses = dict()
 
         source_x = self.get_model().extract_feat(inputs)
-        with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
-            print('*************source*************', file=file)
+        # with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
+        #     print('*************source*************', file=file)
         source_loss_decode = self.get_model().decode_head.loss(source_x, data_samples,
                                             self.train_cfg)
 
@@ -263,7 +269,7 @@ class DACS(UDADecorator):
         return losses
 
 
-    def target_loss(self, data: dict, cur_iter: int, debug_class: List) -> dict:
+    def target_loss(self, data: dict, cur_iter: int) -> dict:
         losses = dict()
         source_data = data[0]
         target_data = data[1]
@@ -305,7 +311,7 @@ class DACS(UDADecorator):
         gt_pixel_weight = torch.ones((pseudo_weight.shape), device=inputs.device)
 
         mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
-        mix_masks = get_class_masks(gt_semantic_seg, cur_iter, debug_class)
+        mix_masks = get_class_masks(gt_semantic_seg, cur_iter, )
 
         for i in range(batch_size):
             strong_parameters['mix'] = mix_masks[i]
@@ -319,26 +325,45 @@ class DACS(UDADecorator):
         mixed_img = torch.cat(mixed_img)
         mixed_lbl = torch.cat(mixed_lbl)
 
-        for class_idx in debug_class:
-            with open("debug/mixed_label_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-                for b_idx in range(mixed_lbl.shape[0]):
-                    print(
-                        "the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx,
-                                                                                         class_idx in torch.unique(
-                                                                                             mixed_lbl[b_idx])), file=file)
-
         for i in range(len(data_samples)):
             data_samples[i].gt_sem_seg.data = mixed_lbl[i]
 
 
         target_x = self.get_model().extract_feat(mixed_img)
-        with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
-            print('=============target=============', file=file)
         target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,
                                                                self.train_cfg, pseudo_weight)
 
 
         losses.update(add_prefix(target_loss_decode, 'mix'))
+
+        if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
+            s_t_img = torch.cat((source_data['inputs'][0], target_data['inputs'][0]), dim=1)
+            s_t_img = self.visualizer.return_add_datasample(image=s_t_img,
+                                                            draw_gt=False,
+                                                            draw_pred=False)
+            mixed_img_label = self.visualizer.return_add_datasample(image=mixed_img[0],
+                                                                    data_sample=PixelData(data=mixed_lbl[0]),
+                                                                    draw_gt=True,
+                                                                    draw_pred=False,
+                                                                    )
+            draw_img = self.visualizer.return_add_datasample(image=mixed_img[0],
+                                                                    draw_gt=False,
+                                                                    draw_pred=False,
+                                                                    )
+            draw_ps_weight = (pseudo_weight[0].unsqueeze(0)).expand(3,-1,-1).cpu()*255
+            draw_ps_weight = np.clip(draw_ps_weight.numpy(), 0, 255).astype(np.uint8)
+            draw_ps_weight = np.ascontiguousarray(draw_ps_weight.transpose(1, 2, 0))
+
+            draw_mix_mask = (mix_masks[0][0].cpu()).expand(3,-1,-1)*255
+            draw_mix_mask = np.clip(draw_mix_mask.numpy(), 0, 255).astype(np.uint8)
+            draw_mix_mask = np.ascontiguousarray(draw_mix_mask.transpose(1,2,0))
+            cat_mix_img = np.concatenate((draw_img,mixed_img_label), axis=0)
+            cat_mask_weight = np.concatenate((draw_mix_mask, draw_ps_weight), axis=0)
+            debug_img = np.concatenate((s_t_img,cat_mix_img,cat_mask_weight), axis=1)
+            self.visualizer.add_datasample(name='target_mix_{}'.format(self.message_hub.get_info('iter')),
+                                           image=debug_img,
+                                           draw_gt=False,
+                                           draw_pred=False)
         return losses
 
 
@@ -382,16 +407,12 @@ class DACS(UDADecorator):
         if cur_iter > 0:
             self._update_ema(cur_iter)
 
-        debug_class = [18, 12, 17, 16, 7, 6]
-
-
+        if self.message_hub.get_info('iter') % 100 == 0:
+            for i in range(len(source_data['data_samples'])):
+                source_data['data_samples'][i].set_data({'ori_img':source_data['inputs'][i]})
+                target_data['data_samples'][i].set_data({'ori_img':target_data['inputs'][i]})
 
         source_data = self.data_preprocessor(source_data, True)
-
-        for class_idx in debug_class:
-            with open("debug/source_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-                for b_idx in range(len(source_data['data_samples'])):
-                    print("the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx, class_idx in torch.unique(source_data['data_samples'][b_idx].gt_sem_seg.data)), file=file)
 
         source_losses = self._run_forward(source_data, mode='source_loss')  # type: ignore
         if self.enable_fdist:
@@ -425,7 +446,7 @@ class DACS(UDADecorator):
 
         # with optim_wrapper.optim_context(self):
         target_data = self.data_preprocessor(target_data, True)
-        target_losses = self.target_loss([source_data, target_data], cur_iter, debug_class)
+        target_losses = self.target_loss([source_data, target_data], cur_iter)
         target_parsed_losses, t_log_vars = self.parse_losses(target_losses)  # type: ignore
         log_vars.update(t_log_vars)
         optim_wrapper.backward(target_parsed_losses, retain_graph=True)

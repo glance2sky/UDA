@@ -32,6 +32,7 @@ def get_rcs_class_probs(data_root, temperature):
             overall_class_stats.items(), key=lambda item: item[1])
     }
     freq = torch.tensor(list(overall_class_stats.values()))
+    print_log(freq)
     freq = freq / torch.sum(freq)
     freq = 1 - freq
     freq = torch.softmax(freq / temperature, dim=-1)

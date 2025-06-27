@@ -29,7 +29,7 @@ class Node(object):
         self.hex = ''
 
 class Tree(object):
-    def __init__(self, i2c, json):
+    def __init__(self, i2c, json, temp):
 
         self.i2c = i2c
         self.K = max([i for i, c in self.i2c.items()]) + 1
@@ -47,6 +47,20 @@ class Tree(object):
         self.init_metric_families()
 
         self.abs2con = self.bulid_depth_nodes()
+
+        rcs_pix_num = [1244691, 5114346, 5928178, 19564940, 25151302, 31550803,
+                     66517556, 90477856, 147094035, 226170767, 276570344, 469205586,
+                     495076572, 636140100, 1967543999, 2020832069, 3471989548, 4292872239,
+                     8134457109]
+        rcs_class = [18, 12, 17, 7, 16, 6, 15, 11, 4, 14, 5, 13, 3, 9, 1, 8, 10, 2, 0]
+        self.class_pix_num = {rcs_class[i]:rcs_pix_num[i] for i in range(len(rcs_class))}
+        self.hclass_num = self.cal_class_weight()
+        self.cal_all_class_pix_num()
+        self.siblings_weight = self.cal_siblings_weight(temperature=temp)
+        self.hie_classes_name = hie_classes = [[self.i2n[i] for i in sorted(set(self.abs2con[d + 1].values())) if i != 255] for d in range(len(self.abs2con))]
+
+
+
 
         # fig, ax = plt.subplots(figsize=(100, 80))
         #
@@ -204,6 +218,42 @@ class Tree(object):
 
             leave2depth[depth] = cur_depth
         return leave2depth
+
+    def cal_all_class_pix_num(self):
+        from collections import defaultdict
+        self.all_class_pix_num = defaultdict(int)
+        for depth in self.hclass_num.keys():
+            self.all_class_pix_num.update({i: v for i, v in self.hclass_num[depth].items()})
+
+
+
+    def cal_class_weight(self):
+        class_weight = {}
+        for depth in self.abs2con.keys():
+            class_weight[depth] = {}
+            for lef_i in range(19):
+                if self.abs2con[depth][lef_i] not in class_weight[depth]:
+                    class_weight[depth][self.abs2con[depth][lef_i]] = self.class_pix_num[lef_i]
+                else:
+                    class_weight[depth][self.abs2con[depth][lef_i]] += self.class_pix_num[lef_i]
+
+        return class_weight
+
+    def cal_siblings_weight(self, temperature):
+        siblings = {}
+        for depth in self.hclass_num:
+            siblings[depth] = {}
+            for idx in self.hclass_num[depth].keys():
+                if idx in list(siblings[depth].keys()):
+                    continue
+                sib_list = self.nodes[self.i2n[idx]].siblings
+                num_list = [self.all_class_pix_num[self.n2i[i]] for i in sib_list]
+                freq_list = torch.tensor(num_list) / sum(num_list)
+                freq = 1 - freq_list
+                freq = torch.softmax(freq / temperature, dim=-1)
+                siblings[depth].update({self.n2i[i]:f for i,f in zip(sib_list, list(freq))})
+
+        return siblings
 
 
 

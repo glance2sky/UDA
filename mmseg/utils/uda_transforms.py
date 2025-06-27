@@ -83,15 +83,9 @@ def gaussian_blur(blur, data=None, target=None):
     return data, target
 
 
-def get_class_masks(labels, cur_iter, debug_class):
+def get_class_masks(labels, cur_iter):
 
-    # for class_idx in debug_class:
-    #     with open("debug/class_mask_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-    #         for b_idx in range(labels.shape[0]):
-    #             print(
-    #                 "the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx,
-    #                                                                                  class_idx in torch.unique(
-    #                                                                                      labels[b_idx])), file=file)
+
 
     class_masks = []
     for label in labels:
@@ -103,11 +97,7 @@ def get_class_masks(labels, cur_iter, debug_class):
         classes_choice = classes[torch.Tensor(class_choice_i).long()]
         if 16 in classes and 16 not in classes_choice:
             classes_choice = torch.cat([classes_choice, torch.tensor([16], device=classes.device)], dim=0)
-        # for class_idx in debug_class:
-        #     with open("debug/class_mask_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-        #         print(
-        #             "the class idx {} in the source label on step {}: {}".format(class_idx, cur_iter,
-        #                                                                              class_idx in classes), file=file)
+
 
         class_masks.append(generate_class_mask(label, classes_choice).unsqueeze(0))
     return class_masks

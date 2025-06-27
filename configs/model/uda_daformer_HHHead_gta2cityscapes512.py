@@ -9,8 +9,10 @@ _base_ = [
 model = dict(
     uda_model=dict(
         decode_head=dict(type='HHHead',
-                      tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
-                                   'json':'data/cityscapes/cityscapes_hierarchy3.json'}),
+                         tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
+                                      'json':'data/cityscapes/cityscapes_hierarchy3.json',},
+                         c=0.5,
+                         temp=0.5),
         # init_cfg=dict(type='Pretrained', checkpoint='workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth')
     ),
     mix='class',
@@ -25,6 +27,7 @@ model = dict(
     # imnet_feature_dist_lambda=0,
     imnet_feature_dist_classes=[6, 7, 11, 12, 13, 14, 15, 16, 17, 18],
     imnet_feature_dist_scale_min_ratio=0.75,
+    debug_iter=250
 )
 train_cfg = dict(
     type='IterBasedTrainLoop',
@@ -48,7 +51,8 @@ optim_wrapper = dict(
         custom_keys=dict(
             head=dict(lr_mult=10.0),
             pos_block=dict(decay_mult=0.0),
-            norm=dict(decay_mult=0.0))))
+            norm=dict(decay_mult=0.0),
+            hyper_mlr=dict(lr_mult=10, decay_mult=0))))
 
 # param_scheduler = [
 #     dict(
@@ -72,11 +76,10 @@ data_preprocessor = dict(
 
 custom_hooks = [dict(type='DebugVisualizationHook')]
 
-# visualizer = dict(
-#     type='Visualizer',
-#     vis_backends=[dict(type='TensorboardVisBackend')]
-# )
+visualizer = dict(
+    type='HHLocalVisualizer',
+)
 
 # load_from = 'workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_34000.pth'
 # load_from = 'workdir/uda_hierarchy2_rcs_crop_grad_accum/best_mIoU_iter_9000.pth'
-# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_54000.pth'
+# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_14000.pth'

@@ -15,11 +15,15 @@ import json
 from typing import List, Tuple
 from torch import Tensor
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 from torch.nn.init import kaiming_uniform_
+import geoopt.manifolds.stereographic.math as gmath
 
 from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
 from mmseg.utils import ConfigType, SampleList, add_prefix
+from mmseg.visualization.hyper_hierarchy_visualizer import HHLocalVisualizer
+from mmengine.logging import MessageHub
 
 PROJ_EPS = 1e-3
 class ASPPWrapper(nn.Module):
@@ -123,6 +127,90 @@ def build_layer(in_channels, out_channels, type, **kwargs):
     else:
         raise NotImplementedError(type)
 
+
+class HyperMapper(object):
+    """A class to map between euclidean and hyperbolic space and compute distances."""
+
+    def __init__(self, c=1.) -> None:
+        """Initialize the hyperbolic mapper.
+
+        Args:
+            c (float, optional): Hyperbolic curvature. Defaults to 1.0
+        """
+        self.c = c
+        self.K = torch.tensor(-self.c, dtype=float)
+
+    def expmap(self, x, dim=-1):
+        """Exponential mapping from Euclidean to hyperbolic space.
+
+        Args:
+            x (torch.Tensor): Tensor of shape (..., d)
+
+        Returns:
+            torch.Tensor: Tensor of shape (..., d)
+        """
+        x_hyp = gmath.expmap0(x.double(), k=self.K, dim=dim)
+        x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
+        return x_hyp
+
+    def expmap2(self, inputs, dim=-1):
+        PROJ_EPS = 1e-3
+        EPS = 1e-15
+        sqrt_c = torch.sqrt(torch.abs(self.K))
+        inputs = inputs + EPS  # protect div b 0
+        norm = torch.norm(inputs, dim=dim)
+        gamma = torch.tanh(sqrt_c * norm) / (sqrt_c * norm)  # sh ncls
+        scaled_inputs = gamma.unsqueeze(dim) * inputs
+        return gmath.project(scaled_inputs, k=self.K, dim=dim, eps=PROJ_EPS)
+
+    def logmap(self, x):
+        """Logarithmic mapping from hyperbolic to Euclidean space.
+
+        Args:
+            x (torch.Tensor): Tensor of shape (..., d)
+
+        Returns:
+            torch.Tensor: Tensor of shape (..., d)
+        """
+        return gmath.project(gmath.logmap0(x.double(), k=self.K), k=self.K)
+
+    def poincare_distance(self, x, y):
+        """Poincare distance between two points in hyperbolic space.
+
+        Args:
+            x (torch.Tensor): Tensor of shape (..., d)
+            y (torch.Tensor): Tensor of shape (..., d)
+
+        Returns:
+            torch.Tensor: Tensor of shape (...)
+        """
+        return gmath.dist(x, y, k=self.K)
+
+    def poincare_distance_origin(self, x, dim=-1):
+        """Poincare distance between two points in hyperbolic space.
+
+        Args:
+            x (torch.Tensor): Tensor of shape (..., d)
+
+        Returns:
+            torch.Tensor: Tensor of shape (...)
+        """
+        return gmath.dist0(x, k=self.K, dim=dim)
+
+    def cosine_distance(self, x, y):
+        """Cosine distance between two points.
+
+        Args:
+            x (torch.Tensor): Tensor of shape (..., d)
+            y (torch.Tensor): Tensor of shape (..., d)
+
+        Returns:
+            torch.Tensor: Tensor of shape (...)
+        """
+        x = F.normalize(x, dim=-1, p=2)
+        y = F.normalize(y, dim=-1, p=2)
+        return 2 - 2 * (x * y).sum(dim=-1)
+
 class HyperMLR(nn.Module):
     """Multinomial logistic regression in hyperbolic space."""
 
@@ -138,8 +226,8 @@ class HyperMLR(nn.Module):
         self.c = c
         self.K = torch.tensor(c, dtype=float)
         self.num_classes = num_classes
-        self.P_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.float32))
-        self.A_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.float32))
+        self.P_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.double))
+        self.A_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.double))
         kaiming_uniform_(self.P_MLR, a=math.sqrt(5))
         kaiming_uniform_(self.A_MLR, a=math.sqrt(5))
 
@@ -230,7 +318,7 @@ def txt2dict(fn):
 @HEADS.register_module()
 class HHHead(BaseDecodeHead):
     EPS = torch.tensor(1e-12)
-    def __init__(self, decoder_params=None, tree_params=None, **kwargs):
+    def __init__(self, decoder_params=None, tree_params=None,c=1.0,temp=0.5, **kwargs):
         super(HHHead, self).__init__(
             input_transform='multiple_select', **kwargs)
 
@@ -266,12 +354,17 @@ class HHHead(BaseDecodeHead):
         with open(tree_params['json']) as f:
             tree_params['json'] = json.load(f)
 
-        self.tree = Tree(**tree_params)
-        self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
-        self.hyper_mlr = HyperMLR(512,self.tree.M, c=0.5)
 
-    @staticmethod
-    def torch_project_hyp_vecs(x, c, dim=-1):
+        self.c = c
+        self.K = torch.tensor(-self.c, dtype=torch.float)
+        self.tree = Tree(temp=temp,**tree_params)
+        self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
+        self.hyper_mlr = HyperMLR(512,self.tree.M, c=self.c)
+
+        self.visualizer = HHLocalVisualizer.get_current_instance()
+        self.message_hub = MessageHub.get_current_instance()
+
+    def torch_project_hyp_vecs(self, x, dim=1):
         """
         Project hyperbolic vectors to ensure they stay within the Poincaré ball.
 
@@ -283,19 +376,21 @@ class HHHead(BaseDecodeHead):
         Returns:
             Clipped tensor within the Poincaré ball
         """
-        PROJ_EPS = 1e-5
-        max_norm = (1.0 - PROJ_EPS) / math.sqrt(c)
+        # PROJ_EPS = 1e-5
+        # max_norm = (1.0 - PROJ_EPS) / math.sqrt(c)
+        #
+        # # Compute norms along specified dimension
+        # norms = torch.norm(x, p=2, dim=dim, keepdim=True)
+        #
+        # # Clip norms
+        # clipped = torch.clamp(norms, max=max_norm)
+        #
+        # # Project vectors
+        # return x * (clipped / (norms + PROJ_EPS))
+        x_hyp = gmath.project(x, k=self.K, dim=dim)
+        return x_hyp
 
-        # Compute norms along specified dimension
-        norms = torch.norm(x, p=2, dim=dim, keepdim=True)
-
-        # Clip norms
-        clipped = torch.clamp(norms, max=max_norm)
-
-        # Project vectors
-        return x * (clipped / (norms + PROJ_EPS))
-
-    def torch_exp_map_zero(self, inputs, c, EPS=1e-7):
+    def torch_exp_map_zero(self, inputs, dim=1):
         """
         PyTorch implementation of exponential mapping from Euclidean to hyperbolic space (Poincaré ball model).
 
@@ -307,34 +402,37 @@ class HHHead(BaseDecodeHead):
         Returns:
             Projected points in the Poincaré ball
         """
-        sqrt_c = torch.sqrt(torch.tensor(c, device=inputs.device))
-
-        # Add epsilon to avoid division by zero
-        inputs = inputs + EPS
-
-        # Compute norm along the last dimension
-        norm = torch.norm(inputs, p=2, dim=1, keepdim=True)
-
-        # Compute scaling factor gamma
-        gamma = torch.tanh(sqrt_c * norm) / (sqrt_c * norm)
-
-        # Scale the input vectors
-        scaled_inputs = gamma * inputs
-
-        # Project to Poincaré ball
-        return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
+        # sqrt_c = torch.sqrt(torch.tensor(c, device=inputs.device))
+        #
+        # # Add epsilon to avoid division by zero
+        # inputs = inputs + EPS
+        #
+        # # Compute norm along the last dimension
+        # norm = torch.norm(inputs, p=2, dim=1, keepdim=True)
+        #
+        # # Compute scaling factor gamma
+        # gamma = torch.tanh(sqrt_c * norm) / (sqrt_c * norm)
+        #
+        # # Scale the input vectors
+        # scaled_inputs = gamma * inputs
+        #
+        # # Project to Poincaré ball
+        # return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
+        x_hyp = gmath.expmap0(inputs.double(), k=self.K, dim=dim)
+        x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
+        return x_hyp
 
     def hrc_softmax(self, logits):
         logits = logits - torch.max(logits, dim=1, keepdim=True).values
         exp_logits = torch.exp(logits)
         with torch.amp.autocast(enabled=False,device_type='cuda'):
-            Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda())
+            Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda().double())
         cond_probs = exp_logits / torch.clamp(Z, min=1e-15)
         return cond_probs
 
     def get_joints(self, cond_probs):
         log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-4)))
-        log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda())
+        log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda().double())
         joints = torch.exp(log_sum_p)
         return joints
 
@@ -399,8 +497,8 @@ class HHHead(BaseDecodeHead):
             feat = self.dropout(feat)
         embedding = self.embedding_layer(feat)
 
-        projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
-        probs, cprobs = self.run(projected_embedding, input_size)
+        projected_embedding = self.torch_exp_map_zero(embedding, dim=1)
+        probs, cprobs = self.run(projected_embedding.double(), input_size)
         # predictions = self.decide(probs)
         return probs, cprobs
 
@@ -560,9 +658,6 @@ class HHHead(BaseDecodeHead):
 
     def reflect_labels_logits(self, seg_logits: Tensor, labels: Tensor) -> list:
 
-        h1_label_mask = (labels[0][0] == 23)
-        h2_label_mask = (labels[0][1] == 16)
-        h3_label_mask = (labels[0][2] == 16)
 
         B = labels.shape[0]
         depth = labels.shape[1]
@@ -586,6 +681,8 @@ class HHHead(BaseDecodeHead):
                 temp_label.append(data[d + b * depth]['label'].unsqueeze(0))
             batch_data.append([torch.cat(temp_input, dim=0), torch.cat(temp_label, dim=0)])
 
+
+
         return batch_data
 
     def hierarchy_loss(self, seg_logits: Tensor,
@@ -595,7 +692,25 @@ class HHHead(BaseDecodeHead):
         loss = dict()
 
         h_labels = self.generate_hrc_labels(seg_label)
+        h_labels_weight = self.cal_label_weight(temperature=0.5)
         new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
+        labels_weight = self.reflect_labels_weight(h_labels_weight)
+        labels_weight = self.reflect_siblings_labels_weight()
+        weight_mask = self.generate_weight_mask(labels_weight, new_batch_data)
+
+        if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
+            if 'gta' in batch_data_samples[0].img_path:
+                debug_name = 'source_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+            else:
+                debug_name = 'mix_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+
+            self.visualizer.draw_hierarchy_map(name=debug_name,
+                                               image=batch_data_samples[0].ori_img,
+                                               batch_data=new_batch_data,
+                                               hierarchy_classes=self.tree.hie_classes_name,
+                                               draw_gt=True,
+                                               draw_pred=True)
+
         for i, data in enumerate(new_batch_data):
             seg_logits = data[0]
             seg_label = data[1]
@@ -609,8 +724,16 @@ class HHHead(BaseDecodeHead):
             flat_cprobs = log_probs.permute(0, 2, 3, 1).contiguous().view((log_probs.shape[0], -1, log_probs.shape[1]))
             valid_probs = flat_cprobs[valid_mask]
 
+            if seg_weight is not None:
+                seg_weight = torch.ones((seg_weight.shape), device=seg_weight.device)
+                flat_weight = seg_weight.view(seg_weight.shape[0], -1)
+                valid_weight = flat_weight[valid_mask]
+            else:
+                flat_weight = weight_mask[i].view(weight_mask[i].shape[0], -1)
+                valid_weight = flat_weight[valid_mask]
+
             pos_logp = torch.gather(valid_probs, dim=1, index=valid_labels.unsqueeze(1))
-            d_loss = -torch.mean(pos_logp)
+            d_loss = -torch.mean(pos_logp * valid_weight.unsqueeze(1))
             loss['{}_depth'.format(i + 1)] = d_loss
             if 'loss_ce' not in loss.keys():
                 loss['loss_ce'] = d_loss
@@ -637,5 +760,65 @@ class HHHead(BaseDecodeHead):
                 debug_info[self.tree.i2n[i]] = mean_class_probs[0][i]
 
         return debug_info
+
+    def cal_label_weight(self, temperature):
+
+        class_hie_weight = {}
+        for depth in self.tree.hclass_num.keys():
+            classes = torch.tensor(list(self.tree.hclass_num[depth].keys()))
+            nums = torch.tensor(list(self.tree.hclass_num[depth].values()), dtype=torch.int64)
+            class_hie_weight[depth] = {}
+            freq = nums / torch.sum(nums)
+            freq = 1 - freq
+            freq = torch.softmax(freq / temperature, dim=-1)
+
+            class_hie_weight[depth]['classes'] = classes
+            class_hie_weight[depth]['weight'] = freq
+
+        return class_hie_weight
+
+    def reflect_labels_weight(self, labels_weight):
+
+        h_cls2wgh = {}
+        for depth in labels_weight.keys():
+            classes = labels_weight[depth]['classes']
+            weight = labels_weight[depth]['weight']
+            h_cls2wgh[depth] = {int(c):w for c,w in zip(classes, weight)}
+
+
+        re_h_cls2wgh = {}
+        for depth in labels_weight.keys():
+            re_h_cls2wgh[depth] = {}
+            values, indices = torch.sort(torch.Tensor(list(set(self.tree.abs2con[depth].values()))))
+            for v, i in zip(values, indices):
+                re_h_cls2wgh[depth][int(i)] = h_cls2wgh[depth][int(v)]
+        return re_h_cls2wgh
+
+    def reflect_siblings_labels_weight(self):
+
+        h_cls2wgh = self.tree.siblings_weight
+        re_h_cls2wgh = {}
+        for depth in h_cls2wgh.keys():
+            re_h_cls2wgh[depth] = {}
+            values, indices = torch.sort(torch.Tensor(list(set(self.tree.abs2con[depth].values()))))
+            for v, i in zip(values, indices):
+                re_h_cls2wgh[depth][int(i)] = h_cls2wgh[depth][int(v)]
+        return re_h_cls2wgh
+
+    def generate_weight_mask(self,labels_weight, new_batch_data):
+
+        dep_weight = {}
+        for depth in range(len(new_batch_data)):
+            labels = new_batch_data[depth][1]
+            weights = torch.ones((labels.shape), device=labels.device)
+            for i, w in labels_weight[depth+1].items():
+                weights[labels == i] = w*2*(depth+1)
+            dep_weight[depth] = weights
+        return dep_weight
+
+
+
+
+
 
 

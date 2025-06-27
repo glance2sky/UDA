@@ -39,5 +39,6 @@ from mmseg.registry import DATASETS
 
 config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
 runner = Runner.from_cfg(config)
+# runner.load_checkpoint('workdir/daformer_checkpoints/latest.pth')
 # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 runner.train()
