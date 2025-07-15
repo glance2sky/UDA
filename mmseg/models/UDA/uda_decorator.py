@@ -95,6 +95,7 @@ class UDADecorator(BaseSegmentor):
     def predict(self,
                 inputs: Tensor,
                 data_samples: OptSampleList = None) -> SampleList:
+        self.visualizer.add_temp_embeding_for_poincare(label=data_samples[0].gt_sem_seg.data)
         return self.get_model().predict(inputs, data_samples)
 
     def _forward(self,

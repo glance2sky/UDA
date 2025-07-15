@@ -18,14 +18,30 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 from torch.nn.init import kaiming_uniform_
+
 import geoopt.manifolds.stereographic.math as gmath
 
 from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
 from mmseg.utils import ConfigType, SampleList, add_prefix
 from mmseg.visualization.hyper_hierarchy_visualizer import HHLocalVisualizer
+from mmseg.models.utils import PoincareManifold
+
 from mmengine.logging import MessageHub
 
 PROJ_EPS = 1e-3
+
+
+def tensor_hook(grad):
+    if grad.abs().max() > 1e6:
+        print(f": max:{grad.abs().max().item():.3e}")
+        import traceback
+        traceback.print_stack(limit=5)
+    print(grad.abs().max().item())
+
+    return grad
+
+
+
 class ASPPWrapper(nn.Module):
 
     def __init__(self,
@@ -140,7 +156,7 @@ class HyperMapper(object):
         self.c = c
         self.K = torch.tensor(-self.c, dtype=float)
 
-    def expmap(self, x, dim=-1):
+    def expmap(self, x, dim=-1, min_scale=0.1, max_scale=0.9):
         """Exponential mapping from Euclidean to hyperbolic space.
 
         Args:
@@ -149,13 +165,20 @@ class HyperMapper(object):
         Returns:
             torch.Tensor: Tensor of shape (..., d)
         """
-        x_hyp = gmath.expmap0(x.double(), k=self.K, dim=dim)
+        radius = 1.0 / torch.sqrt(torch.tensor(self.c))
+        target_min = min_scale * radius
+        target_max = max_scale * radius
+        x_norm = torch.norm(x, p=2, dim=1, keepdim=True).clamp_min(1e-5)
+        scale = target_min + (target_max - target_min)*(x_norm - x_norm.min()) / (x_norm.max() - x_norm.min())
+        x_normalized = x * (scale / x_norm)
+        x_hyp = gmath.expmap0(x_normalized, k=self.K, dim=dim)
+
         x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
         return x_hyp
 
     def expmap2(self, inputs, dim=-1):
         PROJ_EPS = 1e-3
-        EPS = 1e-15
+        EPS = 1e-6
         sqrt_c = torch.sqrt(torch.abs(self.K))
         inputs = inputs + EPS  # protect div b 0
         norm = torch.norm(inputs, dim=dim)
@@ -211,6 +234,8 @@ class HyperMapper(object):
         y = F.normalize(y, dim=-1, p=2)
         return 2 - 2 * (x * y).sum(dim=-1)
 
+
+TEST_EPS = 1e-6
 class HyperMLR(nn.Module):
     """Multinomial logistic regression in hyperbolic space."""
 
@@ -226,10 +251,11 @@ class HyperMLR(nn.Module):
         self.c = c
         self.K = torch.tensor(c, dtype=float)
         self.num_classes = num_classes
-        self.P_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.double))
-        self.A_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.double))
+        self.P_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.float))
+        self.A_MLR = Parameter(torch.empty((num_classes, out_channels), dtype=torch.float))
         kaiming_uniform_(self.P_MLR, a=math.sqrt(5))
         kaiming_uniform_(self.A_MLR, a=math.sqrt(5))
+
 
     def _hyper_logits(self, inputs):
         """Compute the logits in hyperbolic space.
@@ -237,6 +263,7 @@ class HyperMLR(nn.Module):
         Args:
             inputs (torch.Tensor): Tensor of shape (B, C, H, W)
         """
+
         # B = batch size
         # C = number of channels
         # H, W = height and width of the input
@@ -354,12 +381,28 @@ class HHHead(BaseDecodeHead):
         with open(tree_params['json']) as f:
             tree_params['json'] = json.load(f)
 
-
+        # option 1: custom definehyper MLR
         self.c = c
-        self.K = torch.tensor(-self.c, dtype=torch.float)
+        # self.K = torch.tensor(-self.c, dtype=torch.float)
+        self.K = c
+
         self.tree = Tree(temp=temp,**tree_params)
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
-        self.hyper_mlr = HyperMLR(512,self.tree.M, c=self.c)
+        self.hyper_mlr = HyperMLR(256,self.tree.M, c=self.c)
+        self.mapper = HyperMapper(c=1.0)
+        # option 2: use other defined hyperMLR
+        self.manifold_dec = PoincareManifold(
+            k=self.c,
+            learn_k=False,
+            embed_dim=1024,
+            num_classes=self.tree.M,
+            clip_r=1.0,
+            enc_type='euclidean',
+            manifold_type='poincare'
+        )
+
+
+        self.debug_img = True
 
         self.visualizer = HHLocalVisualizer.get_current_instance()
         self.message_hub = MessageHub.get_current_instance()
@@ -418,7 +461,7 @@ class HHHead(BaseDecodeHead):
         #
         # # Project to Poincaré ball
         # return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
-        x_hyp = gmath.expmap0(inputs.double(), k=self.K, dim=dim)
+        x_hyp = gmath.expmap0(inputs, k=self.K, dim=dim)
         x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
         return x_hyp
 
@@ -426,14 +469,21 @@ class HHHead(BaseDecodeHead):
         logits = logits - torch.max(logits, dim=1, keepdim=True).values
         exp_logits = torch.exp(logits)
         with torch.amp.autocast(enabled=False,device_type='cuda'):
-            Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda().double())
+            Z = torch.einsum('bijk,li->bljk',exp_logits,self.tree.sibmat.cuda())
         cond_probs = exp_logits / torch.clamp(Z, min=1e-15)
         return cond_probs
 
     def get_joints(self, cond_probs):
-        log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-4)))
-        log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda().double())
+        # cond_probs.register_hook(tensor_hook)
+        log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-12)))
+        # log_probs.register_hook(tensor_hook)
+        # log_probs.register_hook(tensor_hook)
+        log_sum_p = torch.einsum('bijk,li->bljk',log_probs,self.tree.hmat.cuda())
+        # log_sum_p.register_hook(tensor_hook)
         joints = torch.exp(log_sum_p)
+        # if joints.grad:
+        #     print(joints.grad.abs().max().item())
+        # # joints.register_hook(tensor_hook)
         return joints
 
     def run(self, projected_embedding, input_size):
@@ -444,7 +494,9 @@ class HHHead(BaseDecodeHead):
             mode='bilinear',
             align_corners=self.align_corners)
         cond_probs = self.hrc_softmax(logits)
+        # cond_probs.register_hook(tensor_hook)
         joints = self.get_joints(cond_probs)
+        # joints.register_hook(tensor_hook)
 
 
         return joints, cond_probs
@@ -495,12 +547,38 @@ class HHHead(BaseDecodeHead):
         """Classify each pixel."""
         if self.dropout is not None:
             feat = self.dropout(feat)
-        embedding = self.embedding_layer(feat)
+        # feat.register_hook(tensor_hook)
+        # embedding = self.embedding_layer(feat)
+        embedding = feat
+        # embedding.register_hook(tensor_hook)
 
-        projected_embedding = self.torch_exp_map_zero(embedding, dim=1)
-        probs, cprobs = self.run(projected_embedding.double(), input_size)
+        projected_embedding = self.mapper.expmap(embedding, dim=1)
+        # projected_embedding.register_hook(tensor_hook)
+        probs, cprobs = self.run(projected_embedding, input_size)
+        # probs.register_hook(tensor_hook)
         # predictions = self.decide(probs)
         return probs, cprobs
+
+    def r_cls_seg(self, feat, input_size):
+        """Classify each pixel."""
+        if self.dropout is not None:
+            feat = self.dropout(feat)
+        # feat.register_hook(tensor_hook)
+        logits = self.manifold_dec(feat)
+        embed = self.manifold_dec.embed(feat)
+        logits = resize(
+            input=logits,
+            size=input_size,
+            mode='bilinear',
+            align_corners=self.align_corners)
+        cond_probs = self.hrc_softmax(logits)
+        # cond_probs.register_hook(tensor_hook)
+        joints = self.get_joints(cond_probs)
+        # joints.register_hook(tensor_hook)
+
+        return joints, cond_probs
+
+
 
     def forward(self, inputs, img_size):
         x = inputs
@@ -527,10 +605,85 @@ class HHHead(BaseDecodeHead):
 
         x = self.fuse_layer(torch.cat(list(_c.values()), dim=1))
         probs, cprobs = self.cls_seg(x, img_size)
+        # probs.register_hook(tensor_hook)
+
+        # probs, cprobs = self.cls_seg(x, img_size)
+        # probs.register_hook(tensor_hook)
 
 
 
         return probs, cprobs
+
+# manifold vision
+#     def forward(self, inputs, img_size):
+#         x = inputs
+#         n, _, h, w = x[-1].shape
+#         # for f in x:
+#         #     mmcv.print_log(f'{f.shape}', 'mmseg')
+#
+#         os_size = x[0].size()[2:]
+#         _c = {}
+#         for i in self.in_index:
+#             # mmcv.print_log(f'{i}: {x[i].shape}', 'mmseg')
+#             _c[i] = x[i]
+#             if _c[i].dim() == 3:
+#                 _c[i] = _c[i].permute(0, 2, 1).contiguous()\
+#                     .reshape(n, -1, x[i].shape[2], x[i].shape[3])
+#             # mmcv.print_log(f'_c{i}: {_c[i].shape}', 'mmseg')
+#             if _c[i].size()[2:] != os_size:
+#                 # mmcv.print_log(f'resize {i}', 'mmseg')
+#                 _c[i] = resize(
+#                     _c[i],
+#                     size=os_size,
+#                     mode='bilinear',
+#                     align_corners=self.align_corners)
+#
+#         x = torch.cat(list(_c.values()), dim=1)
+#         probs, cprobs = self.r_cls_seg(x, img_size)
+#         # probs.register_hook(tensor_hook)
+#
+#         # probs, cprobs = self.cls_seg(x, img_size)
+#         # probs.register_hook(tensor_hook)
+#
+#
+#         return probs, cprobs
+
+
+    def feat_embed(self,inputs, img_size):
+        x = inputs
+        n, _, h, w = x[-1].shape
+
+        os_size = x[0].size()[2:]
+        _c = {}
+        for i in self.in_index:
+            # mmcv.print_log(f'{i}: {x[i].shape}', 'mmseg')
+            _c[i] = x[i]
+            if _c[i].dim() == 3:
+                _c[i] = _c[i].permute(0, 2, 1).contiguous() \
+                    .reshape(n, -1, x[i].shape[2], x[i].shape[3])
+            # mmcv.print_log(f'_c{i}: {_c[i].shape}', 'mmseg')
+            if _c[i].size()[2:] != os_size:
+                # mmcv.print_log(f'resize {i}', 'mmseg')
+                _c[i] = resize(
+                    _c[i],
+                    size=os_size,
+                    mode='bilinear',
+                    align_corners=self.align_corners)
+
+        x = torch.cat(list(_c.values()), dim=1)
+        logits = self.manifold_dec(x)
+        embed = self.manifold_dec.embed(x)
+        logits = resize(
+            input=logits,
+            size=img_size,
+            mode='bilinear',
+            align_corners=self.align_corners)
+        cond_probs = self.hrc_softmax(logits)
+        # cond_probs.register_hook(tensor_hook)
+        joints = self.get_joints(cond_probs)
+        # joints.register_hook(tensor_hook)
+
+        return joints, cond_probs, embed
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
              train_cfg: ConfigType, seg_weight=None) -> dict:
@@ -548,24 +701,25 @@ class HHHead(BaseDecodeHead):
             dict[str, Tensor]: a dictionary of loss components
         """
         probs, cprobs = self.forward(inputs, batch_data_samples[0].pad_shape)
-        B = probs.shape[0]
-        for b in range(B):
-            cls_uni = torch.unique(batch_data_samples[b].gt_sem_seg.data)
-            if 16 in cls_uni:
-                cls_mask = (batch_data_samples[b].gt_sem_seg.data == 16)
-                num_cls = torch.sum(cls_mask)
-                label_num_cls = torch.sum(probs[b][:19].argmax(0)==16)
-                rig_num_cls = torch.sum(probs[b][:19].argmax(0)[cls_mask[0]] == 16)
-                iou = rig_num_cls / (num_cls + label_num_cls - rig_num_cls)
-                with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
-                    print('train in label: {} --- train in pred: {} --- right pred: {} --- iou: {}'.format(num_cls, label_num_cls, rig_num_cls, iou), file=file)
+        # probs.register_hook(tensor_hook)
+        # B = probs.shape[0]
+        # for b in range(B):
+        #     cls_uni = torch.unique(batch_data_samples[b].gt_sem_seg.data)
+        #     if 16 in cls_uni:
+        #         cls_mask = (batch_data_samples[b].gt_sem_seg.data == 16)
+        #         num_cls = torch.sum(cls_mask)
+        #         label_num_cls = torch.sum(probs[b][:19].argmax(0)==16)
+        #         rig_num_cls = torch.sum(probs[b][:19].argmax(0)[cls_mask[0]] == 16)
+        #         iou = rig_num_cls / (num_cls + label_num_cls - rig_num_cls)
+        #         with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
+        #             print('train in label: {} --- train in pred: {} --- right pred: {} --- iou: {}'.format(num_cls, label_num_cls, rig_num_cls, iou), file=file)
 
 
 
-        debug_info = self.debug_class(16, probs, batch_data_samples)
+        # debug_info = self.debug_class(16, probs, batch_data_samples)
         # losses = self.loss_by_feat(cprobs, batch_data_samples, seg_weight)
         losses = self.hierarchy_loss(probs, batch_data_samples, seg_weight)
-        losses.update(add_prefix(debug_info, 'debug'))
+        # losses.update(add_prefix(debug_info, 'debug'))
         return losses
 
     def loss_by_feat(self, seg_logits: Tensor,
@@ -635,8 +789,11 @@ class HHHead(BaseDecodeHead):
             Tensor: Outputs segmentation logits map.
         """
         probs, cprobs = self.forward(inputs, batch_img_metas[0]['img_shape'])
+        # self.visualizer.add_temp_embeding_for_poincare(embed=embed)
         if probs.shape[1] != self.tree.K:
             probs = probs[:,:self.tree.K,:,:]
+
+        # self.visualizer.visualize_hyperbolic(i2c=self.tree.i2c, manifold=self.manifold_dec.dec_manifold, poincare=True)
 
         return self.predict_by_feat(probs, batch_img_metas)
 
@@ -673,6 +830,9 @@ class HHHead(BaseDecodeHead):
                     if i != 255:
                         labels[b][d][labels[b][d] == v] = i
                 data.append({'input_feat': tem_seg, 'label': labels[b][d]})
+        # data[0]['input_feat'].register_hook(tensor_hook)
+        # data[1]['input_feat'].register_hook(tensor_hook)
+        # data[2]['input_feat'].register_hook(tensor_hook)
         for d in range(depth):
             temp_input = []
             temp_label = []
@@ -690,29 +850,35 @@ class HHHead(BaseDecodeHead):
 
         seg_label = self._stack_batch_gt(batch_data_samples)
         loss = dict()
+        # seg_logits.register_hook(tensor_hook)
 
         h_labels = self.generate_hrc_labels(seg_label)
         h_labels_weight = self.cal_label_weight(temperature=0.5)
         new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
-        labels_weight = self.reflect_labels_weight(h_labels_weight)
+        # new_batch_data[0][0].register_hook(tensor_hook)
+        # new_batch_data[1][0].register_hook(tensor_hook)
+        # new_batch_data[2][0].register_hook(tensor_hook)
+        # labels_weight = self.reflect_labels_weight(h_labels_weight)
         labels_weight = self.reflect_siblings_labels_weight()
         weight_mask = self.generate_weight_mask(labels_weight, new_batch_data)
 
-        if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
-            if 'gta' in batch_data_samples[0].img_path:
-                debug_name = 'source_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
-            else:
-                debug_name = 'mix_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+        if self.debug_img:
+            if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
+                if 'gta' in batch_data_samples[0].img_path:
+                    debug_name = 'source_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+                else:
+                    debug_name = 'mix_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
 
-            self.visualizer.draw_hierarchy_map(name=debug_name,
-                                               image=batch_data_samples[0].ori_img,
-                                               batch_data=new_batch_data,
-                                               hierarchy_classes=self.tree.hie_classes_name,
-                                               draw_gt=True,
-                                               draw_pred=True)
+                self.visualizer.draw_hierarchy_map(name=debug_name,
+                                                   image=batch_data_samples[0].ori_img,
+                                                   batch_data=new_batch_data,
+                                                   hierarchy_classes=self.tree.hie_classes_name,
+                                                   draw_gt=True,
+                                                   draw_pred=True)
 
         for i, data in enumerate(new_batch_data):
             seg_logits = data[0]
+            # seg_logits.register_hook(tensor_hook)
             seg_label = data[1]
             label_flat = seg_label.view(seg_label.shape[0], -1)
 
@@ -720,25 +886,30 @@ class HHHead(BaseDecodeHead):
             valid_mask = (label_flat < num_target)
             valid_labels = label_flat[valid_mask]
 
-            log_probs = torch.log(torch.clamp(seg_logits, min=1e-8))
+            log_probs = torch.log(torch.clamp(seg_logits, min=1e-12))
+            # log_probs = self.stable_log(seg_logits)
+            # log_probs.register_hook(tensor_hook)
             flat_cprobs = log_probs.permute(0, 2, 3, 1).contiguous().view((log_probs.shape[0], -1, log_probs.shape[1]))
             valid_probs = flat_cprobs[valid_mask]
+            # valid_probs.register_hook(tensor_hook)
 
-            if seg_weight is not None:
-                seg_weight = torch.ones((seg_weight.shape), device=seg_weight.device)
-                flat_weight = seg_weight.view(seg_weight.shape[0], -1)
-                valid_weight = flat_weight[valid_mask]
-            else:
-                flat_weight = weight_mask[i].view(weight_mask[i].shape[0], -1)
-                valid_weight = flat_weight[valid_mask]
+            # if seg_weight is not None:
+            #     seg_weight = torch.ones((seg_weight.shape), device=seg_weight.device)
+            #     flat_weight = seg_weight.view(seg_weight.shape[0], -1)
+            #     valid_weight = flat_weight[valid_mask]
+            # else:
+            #     flat_weight = weight_mask[i].view(weight_mask[i].shape[0], -1)
+            #     valid_weight = flat_weight[valid_mask]
 
             pos_logp = torch.gather(valid_probs, dim=1, index=valid_labels.unsqueeze(1))
-            d_loss = -torch.mean(pos_logp * valid_weight.unsqueeze(1))
+            # d_loss = -torch.mean(pos_logp * valid_weight.unsqueeze(1))
+            d_loss = -torch.mean(pos_logp)
             loss['{}_depth'.format(i + 1)] = d_loss
             if 'loss_ce' not in loss.keys():
                 loss['loss_ce'] = d_loss
             else:
                 loss['loss_ce'] = loss['loss_ce'] + d_loss
+        # loss['loss_ce'].register_hook(tensor_hook)
 
         return loss
 
@@ -815,6 +986,13 @@ class HHHead(BaseDecodeHead):
                 weights[labels == i] = w*2*(depth+1)
             dep_weight[depth] = weights
         return dep_weight
+
+    def stable_log(self,probs):
+        probs = torch.clamp(probs, min=1e-4, max=1.0)
+        log_probs = torch.where(probs < 1e-7,
+                                -1e7 * (1-probs),
+                                torch.log(probs))
+        return log_probs
 
 
 

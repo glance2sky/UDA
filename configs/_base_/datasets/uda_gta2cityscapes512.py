@@ -34,7 +34,7 @@ target_train_pipeline = source_train_pipeline
 # ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', scale=(1280, 720), keep_ratio=True),
+    # dict(type='Resize', scale=(1280, 720), keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
     dict(type='LoadAnnotations'),
@@ -86,17 +86,48 @@ val_dataloader = dict(
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
-        type='CityscapesDataset',
-        # type=source_type,
-        data_root='data/cityscapes/',
-        # indices=1,
-        # data_root=source_root,
-        # indices=300,
-        data_prefix=dict(
-            img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
-        # data_prefix=dict(
-        #     img_path='images', seg_map_path='labels'),
-        pipeline=test_pipeline))
+                type='CityscapesDataset',
+                # type=source_type,
+                data_root='data/cityscapes/',
+                # indices=1,
+                # data_root=source_root,
+                # indices=300,
+                data_prefix=dict(
+                    img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
+                # data_prefix=dict(
+                #     img_path='images', seg_map_path='labels'),
+                pipeline=test_pipeline))
+# val_dataloader = dict(
+#     batch_size=1,
+#     num_workers=4,
+#     persistent_workers=True,
+#     sampler=dict(type='DefaultSampler', shuffle=False),
+#     dataset=[
+#         dict(
+#             type='CityscapesDataset',
+#             # type=source_type,
+#             data_root='data/cityscapes/',
+#             # indices=1,
+#             # data_root=source_root,
+#             # indices=300,
+#             data_prefix=dict(
+#                 img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
+#             # data_prefix=dict(
+#             #     img_path='images', seg_map_path='labels'),
+#             pipeline=test_pipeline),
+#         dict(
+#             type=source_type,
+#             # type=source_type,
+#             data_root=source_root,
+#             # indices=1,
+#             # data_root=source_root,
+#             # indices=300,
+#             data_prefix=dict(
+#                 img_path='leftImg8bit/val', seg_map_path='gtFine/val'),
+#             # data_prefix=dict(
+#             #     img_path='images', seg_map_path='labels'),
+#             pipeline=test_pipeline)
+#     ])
 test_dataloader = val_dataloader
 
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])

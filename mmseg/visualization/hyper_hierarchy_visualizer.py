@@ -1,9 +1,14 @@
+import json
 from typing import Dict, List, Optional, Union
+import os
 
 import cv2
+import umap
+import matplotlib.pyplot as plt
 import mmcv
 import numpy as np
 import torch
+import torch.nn.functional as F
 from mmengine.dist import master_only
 from mmengine.structures import PixelData
 from mmengine.visualization import Visualizer
@@ -14,6 +19,72 @@ from mmseg.registry import VISUALIZERS
 from mmseg.structures import SegDataSample
 from mmseg.utils import get_classes, get_palette
 from mmseg.visualization.local_visualizer import SegLocalVisualizer
+# from mmseg.models.utils import resize
+
+from lib.geoopt.manifolds.lorentz.math import lorentz_to_poincare, poincare_to_lorentz
+
+
+class GradientMonitor:
+    def __init__(self, model_name):
+        self.model_name = model_name
+
+    def start_monitor(self, model):
+        self.model = model
+        self.gradients = {name: [] for name, _ in model.named_parameters() if _.requires_grad}
+        self._register_hooks()
+
+    def _register_hooks(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                param.register_hook(
+                    lambda grad, n=name: self._hook_fn(grad, n)
+                )
+
+    def _hook_fn(self, grad, name):
+        if grad is not None:
+            self.gradients[name].append(grad.detach().cpu().numpy())
+
+    def get_stats(self):
+        stats = {}
+        for name, grads in self.gradients.items():
+            if len(grads) > 0:
+                flat_grads = np.concatenate([g.flatten() for g in grads])
+                stats[name] = {
+                    'mean': float(np.mean(flat_grads)),
+                    'std': float(np.std(flat_grads)),
+                    'max': float(np.max(np.abs(flat_grads))),
+                    'hist': np.histogram(flat_grads, bins=50)
+                }
+        return stats
+
+    def save_histogram_json(self, cur_step, save_dir, ):
+
+        summary_json = {}
+        for name,grads in self.gradients.items():
+            # layer_json = {}
+            summary_json[name+'_source'] = {}
+            summary_json[name+'_mix'] = {}
+            for step in range(len(grads)):
+                if step % 2 == 0:
+                    mode = '_source'
+                else:
+                    mode = '_mix'
+                step_layer_json = {}
+                bins, values = np.histogram(grads[step].flatten())
+                step_layer_json['bins'] = bins.tolist()
+                step_layer_json['values'] = values.tolist()
+                summary_json[name+mode]['step_{}'.format(cur_step - len(grads)//2 + step//2 + 1)] = step_layer_json
+
+        json_dir = os.path.join(save_dir, 'grad_json')
+        os.makedirs(json_dir, exist_ok=True)
+        with open(os.path.join(json_dir, 'step_{}.json'.format(cur_step)), 'w') as f:
+            json.dump(summary_json, f, indent=4)
+
+        self.gradients = {name: [] for name in self.gradients.keys()}
+
+
+
+
 
 @VISUALIZERS.register_module()
 class HHLocalVisualizer(SegLocalVisualizer):
@@ -32,6 +103,10 @@ class HHLocalVisualizer(SegLocalVisualizer):
                  alpha: float = 0.8,
                  **kwargs):
         super().__init__(name, image, vis_backends, save_dir, classes, palette, dataset_name, alpha, **kwargs)
+
+        self.grads_moni = GradientMonitor('hyper')
+        self.temp_embedding = None
+        self.temp_label = None
 
 
     def add_datasample(
@@ -65,6 +140,7 @@ class HHLocalVisualizer(SegLocalVisualizer):
                 image = image + torch.tensor([123.675, 116.28, 103.53]).unsqueeze(1).unsqueeze(1)
                 image = np.clip(image.numpy(), 0, 255).astype(np.uint8)
                 image = np.ascontiguousarray(image.transpose(2,0,1))
+
 
 
 
@@ -240,3 +316,92 @@ class HHLocalVisualizer(SegLocalVisualizer):
 
         return drawn_img
 
+    def write_grad_json(self, cur_step):
+        for name, backend in self._vis_backends.items():
+            self.grads_moni.save_histogram_json(cur_step, backend._save_dir)
+
+    def add_temp_embeding_for_poincare(self,embed=None, label=None):
+
+
+        if embed is not None:
+            self.temp_embedding = embed.cpu()
+        else:
+            self.temp_label = label.cpu()
+
+        if self.temp_embedding is not None and self.temp_label is not None:
+            h, w = self.temp_label.shape[-2], self.temp_label[-1]
+            self.temp_embedding = F.interpolate(
+                                    input=self.temp_embedding,
+                                    size=self.temp_label.shape[-2:],
+                                    mode='bilinear',
+                                    align_corners=False)
+            self.temp_embedding = self.temp_embedding.flatten(2).permute(0,2,1)
+            self.temp_label = self.temp_label.flatten(0)
+
+            unique_cls = torch.unique(self.temp_label)
+            embed_list = [torch.mean(self.temp_embedding[0][self.temp_label == cls], dim=0, keepdim=True) for cls in unique_cls if
+                          cls != 255]
+            self.temp_embedding = torch.cat(embed_list, dim=0)
+            self.temp_label = unique_cls
+
+
+
+
+    def visualize_hyperbolic(self, i2c=None, manifold=None, poincare=False):
+        """ Plots hyperbolic data on Poincaré ball and tangent space
+
+        Note: This function only supports curvature k=1.
+        """
+
+        data = self.temp_embedding
+        labels = self.temp_label
+        if i2c is not None:
+            labels = [int(i) for i in labels if i != 255]
+        fig = plt.figure(figsize=(14, 7))
+
+        # 2D embeddings
+        if (data.shape[-1] == 2 and poincare) or (data.shape[-1] == 3 and not poincare):
+            if poincare:
+                data_P = data.cpu()
+            else:
+                data_P = lorentz_to_poincare(data, k=manifold.k).cpu()
+        # Dimensionality reduction to 2D
+        else:
+            if poincare:
+                data = poincare_to_lorentz(data.to(manifold.c.device), manifold.c)
+            reducer = umap.UMAP(output_metric='hyperboloid')
+            data = reducer.fit_transform(data.cpu().numpy())
+            data = manifold.add_time(torch.tensor(data).to(manifold.c.device))
+            data_P = lorentz_to_poincare(data, k=manifold.c).cpu()
+
+        ax = fig.add_subplot(1, 2, 1)
+        plt.scatter(data_P[:, 0], data_P[:, 1], c=labels, s=20)
+        # Draw Poincaré boundary
+        boundary = plt.Circle((0, 0.75), 0.5, color='k', fill=False)
+        ax.add_patch(boundary)
+
+        ax.set_xlim([-1, 1])
+        ax.set_ylim([-1, 1])
+        ax.set_aspect('equal', adjustable='box')
+
+        plt.colorbar()
+        plt.xlabel("$z_0$")
+        plt.ylabel("$z_1$")
+        ax.set_title("Poincaré Ball")
+
+        # Plot hyperbolic embeddings in tangent space of the origin
+        if poincare:
+            z_all_T = (manifold.logmap0(data_P.to('cuda'))).detach().cpu()
+        else:
+            z_all_T = (manifold.logmap0(data)).detach().cpu()
+            z_all_T = z_all_T[..., 1:]
+
+        ax = fig.add_subplot(1, 2, 2)
+        plt.scatter(z_all_T[:, 0], z_all_T[:, 1], c=labels, s=1)
+        ax.set_aspect('equal', adjustable='box')
+        plt.colorbar()
+        plt.xlabel("$z_0$")
+        plt.ylabel("$z_1$")
+        ax.set_title("Tangent Space")
+
+        return fig

@@ -4,18 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="with feature dist">
-      <change afterPath="$PROJECT_DIR$/grid_search.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py" afterDir="false" />
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="add source image,target image and mix image visualizer">
+      <change afterPath="$PROJECT_DIR$/mmseg/models/utils/hyperbolice_manifold.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/models/daformer_HHHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/models/daformer_HHHead.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/_base_/datasets/uda_gta2cityscapes512.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/datasets/uda_gta2cityscapes512.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/_base_/default_runtime.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/utils/tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/utils/tree.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/utils/uda_transforms.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/utils/uda_transforms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/visualization/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/visualization/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/utils/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -60,18 +59,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.cityscapes.executor": "Debug",
-    "Python.debug_class.executor": "Run",
-    "Python.train.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/amax/zxk/UDA/data/cityscapes",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.cityscapes.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.debug_class.executor&quot;: &quot;Run&quot;,
+    &quot;Python.train.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/amax/zxk/HyperbolicCV&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/cityscapes" />
@@ -234,7 +233,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749778095879</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="add source image,target image and mix image visualizer">
+      <option name="closed" value="true" />
+      <created>1750993132819</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1750993132819</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -259,7 +266,8 @@
     <MESSAGE value="test daformer_HHHead on UDA task with UDA self superised" />
     <MESSAGE value="for 12600 copy" />
     <MESSAGE value="with feature dist" />
-    <option name="LAST_COMMIT_MESSAGE" value="with feature dist" />
+    <MESSAGE value="add source image,target image and mix image visualizer" />
+    <option name="LAST_COMMIT_MESSAGE" value="add source image,target image and mix image visualizer" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -290,11 +298,6 @@
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>219</line>
-          <option name="timeStamp" value="108" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
           <line>378</line>
           <option name="timeStamp" value="109" />
@@ -310,29 +313,14 @@
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py</url>
-          <line>97</line>
-          <option name="timeStamp" value="191" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>206</line>
-          <option name="timeStamp" value="192" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
           <line>330</line>
           <option name="timeStamp" value="193" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>71</line>
+          <line>72</line>
           <option name="timeStamp" value="200" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>128</line>
-          <option name="timeStamp" value="206" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
@@ -366,13 +354,78 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>327</line>
-          <option name="timeStamp" value="345" />
+          <line>426</line>
+          <option name="timeStamp" value="372" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
-          <line>700</line>
-          <option name="timeStamp" value="352" />
+          <line>605</line>
+          <option name="timeStamp" value="382" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>567</line>
+          <option name="timeStamp" value="384" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py</url>
+          <line>393</line>
+          <option name="timeStamp" value="411" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>791</line>
+          <option name="timeStamp" value="413" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py</url>
+          <line>370</line>
+          <option name="timeStamp" value="415" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/visualization/hyper_hierarchy_visualizer.py</url>
+          <line>332</line>
+          <option name="timeStamp" value="416" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/utils/hyperbolice_manifold.py</url>
+          <line>71</line>
+          <option name="timeStamp" value="417" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/utils/hyperbolice_manifold.py</url>
+          <line>52</line>
+          <option name="timeStamp" value="422" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>550</line>
+          <option name="timeStamp" value="424" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>554</line>
+          <option name="timeStamp" value="425" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>167</line>
+          <option name="timeStamp" value="427" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>489</line>
+          <option name="timeStamp" value="428" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/structures/pixel_data.py</url>
+          <line>81</line>
+          <option name="timeStamp" value="429" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/structures/pixel_data.py</url>
+          <line>80</line>
+          <option name="timeStamp" value="430" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
