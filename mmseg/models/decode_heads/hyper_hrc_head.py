@@ -313,7 +313,7 @@ class HyperMLR(nn.Module):
         A_norm = torch.norm(self.A_MLR, dim=1)  # (O,)
         normed_A = torch.nn.functional.normalize(self.A_MLR, dim=1)  # (O,C)
 
-        # TODO：源码的A_kernel进行了一次转置。这里需不需要？不需要，kernel形状早已转置了
+
         A_kernel = normed_A[:, :, None, None]  # (O,C,1,1)
         xdota = beta * torch.nn.functional.conv2d(inputs, weight=A_kernel)  # (B,O,H,W)
         pdota = (alpha * torch.sum(-self.P_MLR * normed_A, dim=1)[None, :, None, None])  # (B,O,H,W)
@@ -388,21 +388,22 @@ class HHHead(BaseDecodeHead):
 
         self.tree = Tree(temp=temp,**tree_params)
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
-        self.hyper_mlr = HyperMLR(256,self.tree.M, c=self.c)
-        self.mapper = HyperMapper(c=1.0)
+        self.hyper_mlr = HyperMLR(512,self.tree.M, c=self.c)
+        self.mapper = HyperMapper(c=self.c)
         # option 2: use other defined hyperMLR
-        self.manifold_dec = PoincareManifold(
-            k=self.c,
-            learn_k=False,
-            embed_dim=1024,
-            num_classes=self.tree.M,
-            clip_r=1.0,
-            enc_type='euclidean',
-            manifold_type='poincare'
-        )
+        # self.manifold_dec = PoincareManifold(
+        #     k=self.c,
+        #     learn_k=False,
+        #     embed_dim=1024,
+        #     num_classes=self.tree.M,
+        #     clip_r=1.0,
+        #     enc_type='euclidean',
+        #     manifold_type='poincare'
+        # )
 
 
-        self.debug_img = True
+        # self.debug_img = True
+        self.debug_img = False
 
         self.visualizer = HHLocalVisualizer.get_current_instance()
         self.message_hub = MessageHub.get_current_instance()
@@ -419,19 +420,19 @@ class HHHead(BaseDecodeHead):
         Returns:
             Clipped tensor within the Poincaré ball
         """
-        # PROJ_EPS = 1e-5
-        # max_norm = (1.0 - PROJ_EPS) / math.sqrt(c)
-        #
-        # # Compute norms along specified dimension
-        # norms = torch.norm(x, p=2, dim=dim, keepdim=True)
-        #
-        # # Clip norms
-        # clipped = torch.clamp(norms, max=max_norm)
-        #
-        # # Project vectors
-        # return x * (clipped / (norms + PROJ_EPS))
-        x_hyp = gmath.project(x, k=self.K, dim=dim)
-        return x_hyp
+        PROJ_EPS = 1e-5
+        max_norm = (1.0 - PROJ_EPS) / math.sqrt(self.c)
+
+        # Compute norms along specified dimension
+        norms = torch.norm(x, p=2, dim=dim, keepdim=True)
+
+        # Clip norms
+        clipped = torch.clamp(norms, max=max_norm)
+
+        # Project vectors
+        return x * (clipped / (norms + PROJ_EPS))
+        # x_hyp = gmath.project(x, k=self.K, dim=dim)
+        # return x_hyp
 
     def torch_exp_map_zero(self, inputs, dim=1):
         """
@@ -445,25 +446,26 @@ class HHHead(BaseDecodeHead):
         Returns:
             Projected points in the Poincaré ball
         """
-        # sqrt_c = torch.sqrt(torch.tensor(c, device=inputs.device))
-        #
-        # # Add epsilon to avoid division by zero
-        # inputs = inputs + EPS
-        #
-        # # Compute norm along the last dimension
-        # norm = torch.norm(inputs, p=2, dim=1, keepdim=True)
-        #
-        # # Compute scaling factor gamma
-        # gamma = torch.tanh(sqrt_c * norm) / (sqrt_c * norm)
-        #
-        # # Scale the input vectors
-        # scaled_inputs = gamma * inputs
-        #
-        # # Project to Poincaré ball
-        # return self.torch_project_hyp_vecs(scaled_inputs, c, dim=1)
-        x_hyp = gmath.expmap0(inputs, k=self.K, dim=dim)
-        x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
-        return x_hyp
+        EPS = 1e-7
+        sqrt_c = torch.sqrt(torch.tensor(self.c, device=inputs.device))
+
+        # Add epsilon to avoid division by zero
+        inputs = inputs + EPS
+
+        # Compute norm along the last dimension
+        norm = torch.norm(inputs, p=2, dim=1, keepdim=True)
+
+        # Compute scaling factor gamma
+        gamma = torch.tanh(sqrt_c * norm) / (sqrt_c * norm)
+
+        # Scale the input vectors
+        scaled_inputs = gamma * inputs
+
+        # Project to Poincaré ball
+        return self.torch_project_hyp_vecs(scaled_inputs, dim=1)
+        # x_hyp = gmath.expmap0(inputs, k=self.K, dim=dim)
+        # x_hyp = gmath.project(x_hyp, k=self.K, dim=dim)
+        # return x_hyp
 
     def hrc_softmax(self, logits):
         logits = logits - torch.max(logits, dim=1, keepdim=True).values
@@ -475,6 +477,7 @@ class HHHead(BaseDecodeHead):
 
     def get_joints(self, cond_probs):
         # cond_probs.register_hook(tensor_hook)
+        # TODO:
         log_probs = torch.log(torch.max(cond_probs, torch.tensor(1e-12)))
         # log_probs.register_hook(tensor_hook)
         # log_probs.register_hook(tensor_hook)
@@ -548,11 +551,12 @@ class HHHead(BaseDecodeHead):
         if self.dropout is not None:
             feat = self.dropout(feat)
         # feat.register_hook(tensor_hook)
-        # embedding = self.embedding_layer(feat)
-        embedding = feat
+        embedding = self.embedding_layer(feat)
+        # embedding = feat
         # embedding.register_hook(tensor_hook)
 
-        projected_embedding = self.mapper.expmap(embedding, dim=1)
+        # projected_embedding = self.mapper.expmap(embedding, dim=1)
+        projected_embedding = self.torch_exp_map_zero(embedding)
         # projected_embedding.register_hook(tensor_hook)
         probs, cprobs = self.run(projected_embedding, input_size)
         # probs.register_hook(tensor_hook)
@@ -853,14 +857,14 @@ class HHHead(BaseDecodeHead):
         # seg_logits.register_hook(tensor_hook)
 
         h_labels = self.generate_hrc_labels(seg_label)
-        h_labels_weight = self.cal_label_weight(temperature=0.5)
+        # h_labels_weight = self.cal_label_weight(temperature=0.5)
         new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
         # new_batch_data[0][0].register_hook(tensor_hook)
         # new_batch_data[1][0].register_hook(tensor_hook)
         # new_batch_data[2][0].register_hook(tensor_hook)
         # labels_weight = self.reflect_labels_weight(h_labels_weight)
-        labels_weight = self.reflect_siblings_labels_weight()
-        weight_mask = self.generate_weight_mask(labels_weight, new_batch_data)
+        # labels_weight = self.reflect_siblings_labels_weight()
+        # weight_mask = self.generate_weight_mask(labels_weight, new_batch_data)
 
         if self.debug_img:
             if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
