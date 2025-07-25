@@ -9,8 +9,9 @@ _base_ = [
 model = dict(
     uda_model=dict(
         decode_head=dict(type='HHHead',
-                      tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
-                                   'json':'data/cityscapes/cityscapes_hierarchy3.json'}),
+                         tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
+                                      'json':'data/cityscapes/cityscapes_hierarchy3.json'},
+                         c=0.5),
         # init_cfg=dict(type='Pretrained', checkpoint='workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth')
     ),
     mix='class',
@@ -79,4 +80,4 @@ custom_hooks = [dict(type='DebugVisualizationHook')]
 
 # load_from = 'workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_34000.pth'
 # load_from = 'workdir/uda_hierarchy2_rcs_crop_grad_accum/best_mIoU_iter_9000.pth'
-# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_54000.pth'
+# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_14000.pth'

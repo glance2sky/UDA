@@ -5,21 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="for 12600 copy">
-      <change beforePath="$PROJECT_DIR$/.idea/SEG.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SEG.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/default_runtime.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/models/daformer_HHHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/models/daformer_HHHead.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/engine/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/engine/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/engine/hooks/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/engine/hooks/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/engine/hooks/visualization_hook.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/engine/hooks/visualization_hook.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/utils/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/utils/uda_transforms.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/utils/uda_transforms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -237,7 +225,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="best" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -304,11 +304,6 @@
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py</url>
-          <line>97</line>
-          <option name="timeStamp" value="191" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
           <line>206</line>
           <option name="timeStamp" value="192" />
@@ -317,11 +312,6 @@
           <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
           <line>330</line>
           <option name="timeStamp" value="193" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>69</line>
-          <option name="timeStamp" value="200" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
@@ -362,31 +352,6 @@
           <url>file://$PROJECT_DIR$/mmseg/utils/uda_transforms.py</url>
           <line>104</line>
           <option name="timeStamp" value="288" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>397</line>
-          <option name="timeStamp" value="289" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>411</line>
-          <option name="timeStamp" value="291" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>188</line>
-          <option name="timeStamp" value="292" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>202</line>
-          <option name="timeStamp" value="293" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
-          <line>201</line>
-          <option name="timeStamp" value="294" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

@@ -230,7 +230,7 @@ def txt2dict(fn):
 @HEADS.register_module()
 class HHHead(BaseDecodeHead):
     EPS = torch.tensor(1e-12)
-    def __init__(self, decoder_params=None, tree_params=None, **kwargs):
+    def __init__(self, decoder_params=None, tree_params=None, c=0.5,**kwargs):
         super(HHHead, self).__init__(
             input_transform='multiple_select', **kwargs)
 
@@ -269,6 +269,17 @@ class HHHead(BaseDecodeHead):
         self.tree = Tree(**tree_params)
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
         self.hyper_mlr = HyperMLR(512,self.tree.M, c=0.5)
+        self.c = c
+
+    def embedding_norm(self, x, min_scale=0.1, max_scale=0.9):
+        radius = 1.0 / torch.sqrt(torch.tensor(self.c))
+        target_min = min_scale * radius
+        target_max = max_scale * radius
+        x_norm = torch.norm(x, p=2, dim=1, keepdim=True).clamp_min(1e-5)
+        scale = target_min + (target_max - target_min) * (x_norm - x_norm.min()) / (x_norm.max() - x_norm.min())
+        x_normalized = x * (scale / x_norm)
+        return x_normalized
+
 
     @staticmethod
     def torch_project_hyp_vecs(x, c, dim=-1):
@@ -398,7 +409,7 @@ class HHHead(BaseDecodeHead):
         if self.dropout is not None:
             feat = self.dropout(feat)
         embedding = self.embedding_layer(feat)
-
+        embedding = self.embedding_norm(embedding)
         projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
         probs, cprobs = self.run(projected_embedding, input_size)
         # predictions = self.decide(probs)
