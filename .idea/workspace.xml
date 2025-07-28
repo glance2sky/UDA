@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="for 12600 copy">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
-    </list>
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="for 12600 copy" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
