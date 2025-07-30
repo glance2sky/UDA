@@ -44,7 +44,7 @@ optim_wrapper = dict(
     _delete_=True,
     type='AmpOptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=7e-05, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys=dict(
             head=dict(lr_mult=10.0),
@@ -78,6 +78,8 @@ custom_hooks = [dict(type='DebugVisualizationHook')]
 #     vis_backends=[dict(type='TensorboardVisBackend')]
 # )
 
+# randomness = dict(seed=1579917503)
+
 # load_from = 'workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_34000.pth'
 # load_from = 'workdir/uda_hierarchy2_rcs_crop_grad_accum/best_mIoU_iter_9000.pth'
-# load_from = 'workdir/uda_re_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_14000.pth'
+load_from = 'workdir/best_69.33/best_mIoU_iter_51000.pth'

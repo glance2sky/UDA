@@ -268,8 +268,9 @@ class HHHead(BaseDecodeHead):
 
         self.tree = Tree(**tree_params)
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
-        self.hyper_mlr = HyperMLR(512,self.tree.M, c=0.5)
         self.c = c
+        self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
+
 
     def embedding_norm(self, x, min_scale=0.1, max_scale=0.9):
         radius = 1.0 / torch.sqrt(torch.tensor(self.c))
@@ -410,7 +411,8 @@ class HHHead(BaseDecodeHead):
             feat = self.dropout(feat)
         embedding = self.embedding_layer(feat)
         embedding = self.embedding_norm(embedding)
-        projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
+        # projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
+        projected_embedding = self.torch_exp_map_zero(embedding, c=self.c)
         probs, cprobs = self.run(projected_embedding, input_size)
         # predictions = self.decide(probs)
         return probs, cprobs
