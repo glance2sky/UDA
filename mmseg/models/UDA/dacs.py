@@ -319,21 +319,14 @@ class DACS(UDADecorator):
         mixed_img = torch.cat(mixed_img)
         mixed_lbl = torch.cat(mixed_lbl)
 
-        for class_idx in debug_class:
-            with open("debug/mixed_label_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-                for b_idx in range(mixed_lbl.shape[0]):
-                    print(
-                        "the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx,
-                                                                                         class_idx in torch.unique(
-                                                                                             mixed_lbl[b_idx])), file=file)
+
 
         for i in range(len(data_samples)):
             data_samples[i].gt_sem_seg.data = mixed_lbl[i]
 
 
         target_x = self.get_model().extract_feat(mixed_img)
-        with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
-            print('=============target=============', file=file)
+
         target_loss_decode = self.get_model().decode_head.loss(target_x, data_samples,
                                                                self.train_cfg, pseudo_weight)
 
@@ -388,10 +381,6 @@ class DACS(UDADecorator):
 
         source_data = self.data_preprocessor(source_data, True)
 
-        for class_idx in debug_class:
-            with open("debug/source_c{}_debug.txt".format(class_idx), "a", encoding='utf-8') as file:
-                for b_idx in range(len(source_data['data_samples'])):
-                    print("the class idx {} in the source label on step {} b{}: {}".format(class_idx, cur_iter, b_idx, class_idx in torch.unique(source_data['data_samples'][b_idx].gt_sem_seg.data)), file=file)
 
         source_losses = self._run_forward(source_data, mode='source_loss')  # type: ignore
         if self.enable_fdist:

@@ -5,9 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="for 12600 copy">
+      <change afterPath="$PROJECT_DIR$/configs/_base_/datasets/uda_synthia2cityscapes512.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_synthia2cityscapes512.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/SEG.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SEG.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_gta2cityscapes512.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/_base_/default_runtime.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/datasets/synthia.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/synthia.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +37,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -37,12 +44,12 @@
     &quot;assignee&quot;: &quot;glance2sky&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:glance2sky/UDA.git&quot;,
-    &quot;accountId&quot;: &quot;4411d9b5-910c-493e-8639-f8bb63b6efa3&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/glance2sky/UDA.git",
+    "accountId": "4411d9b5-910c-493e-8639-f8bb63b6efa3"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -51,18 +58,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.cityscapes.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.debug_class.executor&quot;: &quot;Run&quot;,
-    &quot;Python.train.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;best&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/amax/zxk/UDA/data/cityscapes&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.cityscapes.executor": "Debug",
+    "Python.debug_class.executor": "Run",
+    "Python.train.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "best",
+    "last_opened_file_path": "/home/amax/zxk/UDA/data/cityscapes",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/cityscapes" />
@@ -132,7 +139,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-48aec45f0201-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.17011.127" />
+        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
       </set>
     </attachedChunks>
   </component>
@@ -352,6 +359,11 @@
           <url>file://$PROJECT_DIR$/mmseg/utils/uda_transforms.py</url>
           <line>104</line>
           <option name="timeStamp" value="288" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py</url>
+          <line>296</line>
+          <option name="timeStamp" value="296" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

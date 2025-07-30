@@ -228,11 +228,11 @@ class UDADataset:
             self.rcs_min_pixels = rcs_cfg['min_pixels']
 
             self.rcs_classes, self.rcs_classprob = get_rcs_class_probs(
-                'data/gta', self.rcs_class_temp)
+                source_dataset.data_root, self.rcs_class_temp)
             print_log(f'RCS Classes: {self.rcs_classes}')
             print_log(f'RCS ClassProb: {self.rcs_classprob}')
 
-            with open(osp.join('data/gta', 'samples_with_class.json'), 'r') as of:
+            with open(osp.join(source_dataset.data_root, 'samples_with_class.json'), 'r') as of:
                 samples_with_class_and_n = json.load(of)
             samples_with_class_and_n = {
                 int(k): v
@@ -272,7 +272,10 @@ class UDADataset:
         c = np.random.choice(self.rcs_classes, p=self.rcs_classprob)
         # c = 16
         f1 = np.random.choice(self.samples_with_class[c])
-        i1 = int(f1.split('_label')[0])-1
+        if 'synthia' in self.source_dataset.data_root:
+            i1 = int(f1.split('_label')[0])
+        else:
+            i1 = int(f1.split('_label')[0])-1
         s1 = self.source_dataset[i1]
         assert f1 == s1['data_samples'].seg_map_path.split('/')[-1]
         if self.rcs_min_crop_ratio > 0: # 实际上这段代码没有用
