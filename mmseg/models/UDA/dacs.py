@@ -229,8 +229,6 @@ class DACS(UDADecorator):
         losses = dict()
 
         source_x = self.get_model().extract_feat(inputs)
-        with open('debug/train_train_b.txt', 'a', encoding='utf-8') as file:
-            print('*************source*************', file=file)
         source_loss_decode = self.get_model().decode_head.loss(source_x, data_samples,
                                             self.train_cfg)
 

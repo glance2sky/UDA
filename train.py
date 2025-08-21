@@ -41,3 +41,4 @@ config = Config.fromfile('configs/model/uda_daformer_HHHead_synthia2cityscapes51
 runner = Runner.from_cfg(config)
 # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 runner.train()
+

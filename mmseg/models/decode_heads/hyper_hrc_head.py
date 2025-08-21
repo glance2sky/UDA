@@ -269,7 +269,8 @@ class HHHead(BaseDecodeHead):
         self.tree = Tree(**tree_params)
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
         self.c = c
-        self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
+        # self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
+        self.hyper_mlr = HyperMLR(256, self.tree.M, c=c) # for test
 
 
     def embedding_norm(self, x, min_scale=0.1, max_scale=0.9):
@@ -405,31 +406,78 @@ class HHHead(BaseDecodeHead):
 
         return predictions
 
+    # def cls_seg(self, feat, input_size):
+    #     """ori DAFormer"""
+    #     if self.dropout is not None:
+    #         feat = self.dropout(feat)
+    #     embedding = self.embedding_layer(feat)
+    #     embedding = self.embedding_norm(embedding)
+    #     # projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
+    #     projected_embedding = self.torch_exp_map_zero(embedding, c=self.c)
+    #     probs, cprobs = self.run(projected_embedding, input_size)
+    #     # predictions = self.decide(probs)
+    #     return probs, cprobs
+
     def cls_seg(self, feat, input_size):
-        """Classify each pixel."""
+        """new head"""
         if self.dropout is not None:
             feat = self.dropout(feat)
-        embedding = self.embedding_layer(feat)
-        embedding = self.embedding_norm(embedding)
+        # embedding = self.embedding_layer(feat)
+        # embedding = self.embedding_norm(embedding)
         # projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
-        projected_embedding = self.torch_exp_map_zero(embedding, c=self.c)
-        probs, cprobs = self.run(projected_embedding, input_size)
+        # projected_embedding = self.torch_exp_map_zero(embedding, c=self.c)
+        probs, cprobs = self.run(feat, input_size)
         # predictions = self.decide(probs)
         return probs, cprobs
 
+    # def forward(self, inputs, img_size):
+    #     """origin DAFormer"""
+    #
+    #     x = inputs
+    #     n, _, h, w = x[-1].shape
+    #     # for f in x:
+    #     #     mmcv.print_log(f'{f.shape}', 'mmseg')
+    #
+    #     os_size = x[0].size()[2:]
+    #     _c = {}
+    #     for i in self.in_index:
+    #         # mmcv.print_log(f'{i}: {x[i].shape}', 'mmseg')
+    #         _c[i] = self.embed_layers[str(i)](x[i])
+    #         if _c[i].dim() == 3:
+    #             _c[i] = _c[i].permute(0, 2, 1).contiguous()\
+    #                 .reshape(n, -1, x[i].shape[2], x[i].shape[3])
+    #         # mmcv.print_log(f'_c{i}: {_c[i].shape}', 'mmseg')
+    #         if _c[i].size()[2:] != os_size:
+    #             # mmcv.print_log(f'resize {i}', 'mmseg')
+    #             _c[i] = resize(
+    #                 _c[i],
+    #                 size=os_size,
+    #                 mode='bilinear',
+    #                 align_corners=self.align_corners)
+    #
+    #     x = self.fuse_layer(torch.cat(list(_c.values()), dim=1))
+    #     probs, cprobs = self.cls_seg(x, img_size)
+    #
+    #
+    #
+    #     return probs, cprobs
+
+
     def forward(self, inputs, img_size):
+        """new head"""
+
+
         x = inputs
         n, _, h, w = x[-1].shape
-        # for f in x:
-        #     mmcv.print_log(f'{f.shape}', 'mmseg')
-
         os_size = x[0].size()[2:]
         _c = {}
         for i in self.in_index:
             # mmcv.print_log(f'{i}: {x[i].shape}', 'mmseg')
             _c[i] = self.embed_layers[str(i)](x[i])
+            _c[i] = self.embedding_norm(_c[i])
+            _c[i] = self.torch_exp_map_zero(_c[i], c=self.c)
             if _c[i].dim() == 3:
-                _c[i] = _c[i].permute(0, 2, 1).contiguous()\
+                _c[i] = _c[i].permute(0, 2, 1).contiguous() \
                     .reshape(n, -1, x[i].shape[2], x[i].shape[3])
             # mmcv.print_log(f'_c{i}: {_c[i].shape}', 'mmseg')
             if _c[i].size()[2:] != os_size:
@@ -443,9 +491,8 @@ class HHHead(BaseDecodeHead):
         x = self.fuse_layer(torch.cat(list(_c.values()), dim=1))
         probs, cprobs = self.cls_seg(x, img_size)
 
-
-
         return probs, cprobs
+
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
              train_cfg: ConfigType, seg_weight=None) -> dict:
@@ -592,6 +639,8 @@ class HHHead(BaseDecodeHead):
         seg_label = self._stack_batch_gt(batch_data_samples)
         loss = dict()
 
+        # h_labels_weight = self.cal_label_weight(temperature=0.5)
+
         h_labels = self.generate_hrc_labels(seg_label)
         new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
         for i, data in enumerate(new_batch_data):
@@ -635,5 +684,8 @@ class HHHead(BaseDecodeHead):
                 debug_info[self.tree.i2n[i]] = mean_class_probs[0][i]
 
         return debug_info
+
+
+
 
 
