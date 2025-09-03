@@ -4,17 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="for 12600 copy">
-      <change afterPath="$PROJECT_DIR$/configs/_base_/datasets/uda_synthia2cityscapes512.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/model/uda_daformer_HHHead_synthia2cityscapes512.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/SEG.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/SEG.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="change the location of hyperbolic_embedding">
+      <change afterPath="$PROJECT_DIR$/configs/_base_/models/deeplabv3_r50-d8.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/model/uda_deeplabv3plus_HHHead_gta2cityscapes512.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/default_runtime.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/datasets/synthia.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/datasets/synthia.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/dacs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -44,12 +39,12 @@
     &quot;assignee&quot;: &quot;glance2sky&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/glance2sky/UDA.git",
-    "accountId": "4411d9b5-910c-493e-8639-f8bb63b6efa3"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:glance2sky/UDA.git&quot;,
+    &quot;accountId&quot;: &quot;4411d9b5-910c-493e-8639-f8bb63b6efa3&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -58,25 +53,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.cityscapes.executor": "Debug",
-    "Python.debug_class.executor": "Run",
-    "Python.train.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "best",
-    "last_opened_file_path": "/home/amax/zxk/UDA/data/cityscapes",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.cityscapes.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.debug_class.executor&quot;: &quot;Run&quot;,
+    &quot;Python.train.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;best&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/xiaokang/code/UDA/configs/_base_/models&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/configs/_base_/models" />
       <recent name="$PROJECT_DIR$/data/cityscapes" />
       <recent name="$PROJECT_DIR$/data/cityscapes/leftImg8bit" />
       <recent name="$PROJECT_DIR$/mmseg/utils" />
       <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/data/coco_stuff164k" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/cityscapes" />
@@ -139,7 +134,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
+        <option value="bundled-python-sdk-d9fa9deec7cb-d902c0275401-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-252.23892.515" />
       </set>
     </attachedChunks>
   </component>
@@ -224,7 +219,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749000763997</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="add synthia_dataset config and remove debug code">
+      <option name="closed" value="true" />
+      <created>1753876743347</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1753876743347</updated>
+    </task>
+    <task id="LOCAL-00011" summary="change the location of hyperbolic_embedding">
+      <option name="closed" value="true" />
+      <created>1755758182183</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1755758182183</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -260,7 +271,9 @@
     <MESSAGE value=" add HHHead and cityscapes hierarchy file" />
     <MESSAGE value="test daformer_HHHead on UDA task with UDA self superised" />
     <MESSAGE value="for 12600 copy" />
-    <option name="LAST_COMMIT_MESSAGE" value="for 12600 copy" />
+    <MESSAGE value="add synthia_dataset config and remove debug code" />
+    <MESSAGE value="change the location of hyperbolic_embedding" />
+    <option name="LAST_COMMIT_MESSAGE" value="change the location of hyperbolic_embedding" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -291,11 +304,6 @@
           <option name="timeStamp" value="107" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>219</line>
-          <option name="timeStamp" value="108" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
           <line>378</line>
           <option name="timeStamp" value="109" />
@@ -309,26 +317,6 @@
           <url>file://$PROJECT_DIR$/mmseg/datasets/utils.py</url>
           <line>33</line>
           <option name="timeStamp" value="130" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>206</line>
-          <option name="timeStamp" value="192" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>330</line>
-          <option name="timeStamp" value="193" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>128</line>
-          <option name="timeStamp" value="206" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
-          <line>534</line>
-          <option name="timeStamp" value="207" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
@@ -356,14 +344,39 @@
           <option name="timeStamp" value="252" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/utils/uda_transforms.py</url>
-          <line>104</line>
-          <option name="timeStamp" value="288" />
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
+          <line>221</line>
+          <option name="timeStamp" value="292" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/datasets/dataset_wrappers.py</url>
-          <line>296</line>
-          <option name="timeStamp" value="296" />
+          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
+          <line>490</line>
+          <option name="timeStamp" value="294" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>436</line>
+          <option name="timeStamp" value="297" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>469</line>
+          <option name="timeStamp" value="298" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>428</line>
+          <option name="timeStamp" value="299" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py</url>
+          <line>364</line>
+          <option name="timeStamp" value="301" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py</url>
+          <line>354</line>
+          <option name="timeStamp" value="302" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
