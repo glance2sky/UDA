@@ -365,6 +365,14 @@ class ASPPHead_HH(ASPPHead):
         output = self.cls_seg(output, img_size)
         return output
 
+    def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
+                test_cfg: ConfigType) -> Tensor:
+        probs, cprobs = self.forward(inputs, batch_img_metas[0]['img_shape'])
+        if probs.shape[1] != self.tree.K:
+            probs = probs[:, :self.tree.K, :, :]
+
+        return self.predict_by_feat(probs, batch_img_metas)
+
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
              train_cfg: ConfigType, seg_weight=None) -> dict:
         """Forward function for training.
