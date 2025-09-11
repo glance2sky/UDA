@@ -1,7 +1,7 @@
 
 
 _base_ = [
-    '../_base_/models/deeplabv3plus_r50-d8.py',
+    '../_base_/models/deeplabv3_r50-d8.py',
     '../_base_/datasets/uda_gta2cityscapes512.py', '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_160k.py'
 ]
@@ -12,7 +12,7 @@ _base_ = [
 
 model = dict(
     uda_model=dict(
-        decode_head=dict(type='DepthwiseSeparableASPPHead_HH',
+        decode_head=dict(type='ASPPHead_HH',
                          tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',
                                       'json':'data/cityscapes/cityscapes_hierarchy3.json'},
                          c=0.5),
