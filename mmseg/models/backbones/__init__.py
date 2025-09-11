@@ -25,6 +25,8 @@ from .unet import UNet
 from .vit import VisionTransformer
 from .vpd import VPD
 from .mix_transformer import mit_b5, MixVisionTransformer2
+from .lsnet import lsnet_t, lsnet_s, lsnet_b
+
 
 __all__ = [
     'ResNet', 'ResNetV1c', 'ResNetV1d', 'ResNeXt', 'HRNet', 'FastSCNN',
@@ -32,5 +34,5 @@ __all__ = [
     'VisionTransformer', 'SwinTransformer', 'MixVisionTransformer',
     'BiSeNetV1', 'BiSeNetV2', 'ICNet', 'TIMMBackbone', 'ERFNet', 'PCPVT',
     'SVT', 'STDCNet', 'STDCContextPathNet', 'BEiT', 'MAE', 'PIDNet', 'MSCAN',
-    'DDRNet', 'VPD', 'mit_b5', 'MixVisionTransformer2'
+    'DDRNet', 'VPD', 'mit_b5', 'MixVisionTransformer2', 'lsnet_t', 'lsnet_b', 'lsnet_s'
 ]
