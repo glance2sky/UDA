@@ -37,7 +37,7 @@ from mmseg.registry import DATASETS
 # # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 # runner.train()
 
-config = Config.fromfile('configs/model/uda_deeplabv3plus_HHHead_gta2cityscapes512.py')
+config = Config.fromfile('configs/model/da_deeplabv3_gta2cityscapes.py')
 runner = Runner.from_cfg(config)
 # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 runner.train()
