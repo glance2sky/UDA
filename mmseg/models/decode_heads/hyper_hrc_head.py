@@ -7,7 +7,8 @@ from .decode_head import BaseDecodeHead
 from .sep_aspp_head import DepthwiseSeparableASPPModule
 from .segformer_head import MLP
 
-
+import os
+import os.path as opt
 import torch
 import copy
 import math
@@ -20,6 +21,8 @@ from torch.nn.init import kaiming_uniform_
 
 from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
 from mmseg.utils import ConfigType, SampleList, add_prefix
+
+from mmengine.logging import MessageHub
 
 PROJ_EPS = 1e-3
 class ASPPWrapper(nn.Module):
@@ -270,7 +273,10 @@ class HHHead(BaseDecodeHead):
         self.embedding_layer = ConvModule(256,512, kernel_size=(1,1), norm_cfg=None, act_cfg=None)
         self.c = c
         # self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
-        self.hyper_mlr = HyperMLR(256, self.tree.M, c=c) # for test
+        self.hyper_mlr = HyperMLR(512, self.tree.M, c=c) # for test
+        self.save_feature = False
+
+        self.message_hub = MessageHub.get_current_instance()
 
 
     def embedding_norm(self, x, min_scale=0.1, max_scale=0.9):
@@ -489,7 +495,15 @@ class HHHead(BaseDecodeHead):
                     align_corners=self.align_corners)
 
         x = self.fuse_layer(torch.cat(list(_c.values()), dim=1))
+        # 如果要使用t-sne，在这里保存中间结果
+        if self.save_feature and not self.training:
+            exp_name = self.message_hub.get_info('experiment_name')
+            os.makedirs(opt.join('embedding', exp_name), exist_ok=True)
+            img_name = self.message_hub.get_info('cur_img_name').split('.')[0]
+            torch.save(x, opt.join(opt.join('embedding', exp_name), img_name+'.pth'))
+
         probs, cprobs = self.cls_seg(x, img_size)
+
 
         return probs, cprobs
 

@@ -10,6 +10,7 @@ from mmseg.models import build_segmentor
 from mmseg.utils import (ForwardResults, OptConfigType, OptMultiConfig,
                          OptSampleList, SampleList)
 from mmengine.optim import OptimWrapper
+from mmengine.logging import MessageHub
 
 class UDADecorator(BaseSegmentor):
 
@@ -22,6 +23,7 @@ class UDADecorator(BaseSegmentor):
 
         self.test_cfg = uda_model['test_cfg']
         self.num_classes = uda_model['decode_head']['num_classes']
+        self.message_hub = MessageHub.get_current_instance()
 
     def get_model(self):
         return self.model
@@ -95,6 +97,7 @@ class UDADecorator(BaseSegmentor):
     def predict(self,
                 inputs: Tensor,
                 data_samples: OptSampleList = None) -> SampleList:
+        self.message_hub.update_info('cur_img_name', data_samples[0].img_path.split('/')[-1])
         return self.get_model().predict(inputs, data_samples)
 
     def _forward(self,

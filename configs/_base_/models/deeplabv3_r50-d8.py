@@ -52,9 +52,9 @@ uda_model = dict(
     test_cfg=dict(mode='whole'))
 
 
-# model = dict(
-#     type='DACS',
-#     uda_model=uda_model,
-# )
+model = dict(
+    type='DACS',
+    uda_model=uda_model,
+)
 
-model = uda_model
+# model = uda_model
