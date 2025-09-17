@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 import torch.nn as nn
+from humanfriendly.terminal import output
 from mmcv.cnn import ConvModule
 
 from mmseg.registry import MODELS
@@ -238,10 +239,10 @@ class ASPPHead_HH(ASPPHead):
             tree_params['json'] = json.load(f)
 
         self.tree = Tree(**tree_params)
-        self.embedding_layer = ConvModule(512, 256, kernel_size=(1, 1), norm_cfg=None, act_cfg=None)
+        self.embedding_layer = ConvModule(512, 512, kernel_size=(1, 1), norm_cfg=None, act_cfg=None)
         self.c = c
         # self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
-        self.hyper_mlr = HyperMLR(256, self.tree.M, c=c)  # for test
+        self.hyper_mlr = HyperMLR(512, self.tree.M, c=c)  # for test
 
     @staticmethod
     def txt2dict(fn):
@@ -365,13 +366,28 @@ class ASPPHead_HH(ASPPHead):
         output = self.cls_seg(output, img_size)
         return output
 
+    # def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
+    #             test_cfg: ConfigType) -> Tensor:
+    #     probs, cprobs = self.forward(inputs, batch_img_metas[0]['img_shape'])
+    #     if probs.shape[1] != self.tree.K:
+    #         probs = probs[:, :self.tree.K, :, :]
+    #
+    #     return self.predict_by_feat(probs, batch_img_metas)
+
     def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
                 test_cfg: ConfigType) -> Tensor:
-        probs, cprobs = self.forward(inputs, batch_img_metas[0]['img_shape'])
-        if probs.shape[1] != self.tree.K:
-            probs = probs[:, :self.tree.K, :, :]
+        feat = self._forward_feature(inputs)
+        if self.dropout is not None:
+            feat = self.dropout(feat)
+        embedding = self.embedding_layer(feat)
+        embedding = self.embedding_norm(embedding)
+        # projected_embedding = self.torch_exp_map_zero(embedding, c=0.5)
+        projected_embedding = self.torch_exp_map_zero(embedding, c=self.c)
+        logits = self.hyper_mlr(projected_embedding)
+        if logits.shape[1] != self.tree.K:
+            logits = logits[:, :self.tree.K, :, :]
 
-        return self.predict_by_feat(probs, batch_img_metas)
+        return self.predict_by_feat(logits, batch_img_metas)
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
              train_cfg: ConfigType, seg_weight=None) -> dict:

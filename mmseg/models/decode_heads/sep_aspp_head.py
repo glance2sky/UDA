@@ -178,3 +178,26 @@ class DepthwiseSeparableASPPHead_HH(ASPPHead_HH):
         output = self.sep_bottleneck(output)
         output = self.cls_seg(output, img_size)
         return output
+
+    def _forward_feature(self, inputs):
+        x = self._transform_inputs(inputs)
+        aspp_outs = [
+            resize(
+                self.image_pool(x),
+                size=x.size()[2:],
+                mode='bilinear',
+                align_corners=self.align_corners)
+        ]
+        aspp_outs.extend(self.aspp_modules(x))
+        aspp_outs = torch.cat(aspp_outs, dim=1)
+        output = self.bottleneck(aspp_outs)
+        if self.c1_bottleneck is not None:
+            c1_output = self.c1_bottleneck(inputs[0])
+            output = resize(
+                input=output,
+                size=c1_output.shape[2:],
+                mode='bilinear',
+                align_corners=self.align_corners)
+            output = torch.cat([output, c1_output], dim=1)
+        output = self.sep_bottleneck(output)
+        return output
