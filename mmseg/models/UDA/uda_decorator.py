@@ -1,6 +1,8 @@
 
 from copy import deepcopy
 from typing import Dict, Optional, Tuple, Union, List
+import os
+import os.path as opt
 
 import torch
 from torch import Tensor
@@ -98,6 +100,12 @@ class UDADecorator(BaseSegmentor):
                 inputs: Tensor,
                 data_samples: OptSampleList = None) -> SampleList:
         self.message_hub.update_info('cur_img_name', data_samples[0].img_path.split('/')[-1])
+        if self.get_model().decode_head.save_feature and not self.training:
+            exp_name = self.message_hub.get_info('experiment_name')
+            os.makedirs(opt.join('gt', exp_name), exist_ok=True)
+            img_name = self.message_hub.get_info('cur_img_name').split('.')[0]
+            torch.save(data_samples[0].gt_sem_seg.data, opt.join(opt.join('gt', exp_name), img_name + '.pth'))
+
         return self.get_model().predict(inputs, data_samples)
 
     def _forward(self,

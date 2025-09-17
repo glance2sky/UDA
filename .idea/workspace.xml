@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="change the location of hyperbolic_embedding">
-      <change afterPath="$PROJECT_DIR$/configs/_base_/models/deeplabv3_r50-d8.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/model/uda_deeplabv3plus_HHHead_gta2cityscapes512.py" afterDir="false" />
+    <list default="true" id="ee5ea7f0-7060-4769-973b-904cd11a8fba" name="更改" comment="change the predict function of deeplabv3 and plus model">
+      <change afterPath="$PROJECT_DIR$/embedding_visualizer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" beforeDir="false" afterPath="$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -57,11 +56,13 @@
   &quot;keyToString&quot;: {
     &quot;Python.cityscapes.executor&quot;: &quot;Debug&quot;,
     &quot;Python.debug_class.executor&quot;: &quot;Run&quot;,
-    &quot;Python.train.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.embedding_visualizer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.img_inference.executor&quot;: &quot;Run&quot;,
+    &quot;Python.train.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;best&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/xiaokang/code/UDA/configs/_base_/models&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/xiaokang/code/mmsegmentation&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
@@ -79,7 +80,7 @@
       <recent name="$PROJECT_DIR$/configs" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train">
+  <component name="RunManager" selected="Python.embedding_visualizer">
     <configuration name="debug_class" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SEG" />
       <option name="ENV_FILES" value="" />
@@ -94,6 +95,50 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/debug_class.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="embedding_visualizer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="SEG" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/embedding_visualizer.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="img_inference" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="SEG" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/img_inference.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -126,7 +171,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.embedding_visualizer" />
         <item itemvalue="Python.train" />
+        <item itemvalue="Python.img_inference" />
         <item itemvalue="Python.debug_class" />
       </list>
     </recent_temporary>
@@ -134,7 +181,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-d9fa9deec7cb-d902c0275401-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-252.23892.515" />
+        <option value="bundled-python-sdk-8753aad8314d-d902c0275401-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-252.25557.178" />
       </set>
     </attachedChunks>
   </component>
@@ -235,7 +282,79 @@
       <option name="project" value="LOCAL" />
       <updated>1755758182183</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="add deeplabv3_r50 and train test">
+      <option name="closed" value="true" />
+      <created>1756900203126</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1756900203126</updated>
+    </task>
+    <task id="LOCAL-00013" summary="temp">
+      <option name="closed" value="true" />
+      <created>1756904239279</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1756904239279</updated>
+    </task>
+    <task id="LOCAL-00014" summary="add LSNET, and test in UDA,bad">
+      <option name="closed" value="true" />
+      <created>1757563252289</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1757563252289</updated>
+    </task>
+    <task id="LOCAL-00015" summary="add deeplabv3plus for uda">
+      <option name="closed" value="true" />
+      <created>1757566852454</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1757566852454</updated>
+    </task>
+    <task id="LOCAL-00016" summary="add lsNetfpn">
+      <option name="closed" value="true" />
+      <created>1757567065670</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1757567065670</updated>
+    </task>
+    <task id="LOCAL-00017" summary="add DA config files for different model architechture">
+      <option name="closed" value="true" />
+      <created>1757593152898</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1757593152898</updated>
+    </task>
+    <task id="LOCAL-00018" summary="add uda config files for training">
+      <option name="closed" value="true" />
+      <created>1757594038839</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1757594038839</updated>
+    </task>
+    <task id="LOCAL-00019" summary="add save_embedding code">
+      <option name="closed" value="true" />
+      <created>1758014315828</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1758014315828</updated>
+    </task>
+    <task id="LOCAL-00020" summary="change the predict function of deeplabv3 and plus model">
+      <option name="closed" value="true" />
+      <created>1758088775762</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1758088775762</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -273,7 +392,16 @@
     <MESSAGE value="for 12600 copy" />
     <MESSAGE value="add synthia_dataset config and remove debug code" />
     <MESSAGE value="change the location of hyperbolic_embedding" />
-    <option name="LAST_COMMIT_MESSAGE" value="change the location of hyperbolic_embedding" />
+    <MESSAGE value="add deeplabv3_r50 and train test" />
+    <MESSAGE value="temp" />
+    <MESSAGE value="add LSNET, and test in UDA,bad" />
+    <MESSAGE value="add deeplabv3plus for uda" />
+    <MESSAGE value="add lsNetfpn" />
+    <MESSAGE value="add DA config files for different model architechture" />
+    <MESSAGE value="add uda config files for training" />
+    <MESSAGE value="add save_embedding code" />
+    <MESSAGE value="change the predict function of deeplabv3 and plus model" />
+    <option name="LAST_COMMIT_MESSAGE" value="change the predict function of deeplabv3 and plus model" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -292,11 +420,6 @@
           <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
           <line>131</line>
           <option name="timeStamp" value="49" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
-          <line>58</line>
-          <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
@@ -319,16 +442,6 @@
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/evaluator/evaluator.py</url>
-          <line>51</line>
-          <option name="timeStamp" value="208" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/evaluation/metrics/iou_metric.py</url>
-          <line>76</line>
-          <option name="timeStamp" value="209" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/backbones/mix_transformer.py</url>
           <line>216</line>
           <option name="timeStamp" value="212" />
@@ -339,44 +452,84 @@
           <option name="timeStamp" value="228" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/base.py</url>
-          <line>146</line>
-          <option name="timeStamp" value="252" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
-          <line>221</line>
-          <option name="timeStamp" value="292" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/../mmengine/mmengine/runner/loops.py</url>
-          <line>490</line>
-          <option name="timeStamp" value="294" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
-          <line>436</line>
+          <line>442</line>
           <option name="timeStamp" value="297" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
-          <line>469</line>
-          <option name="timeStamp" value="298" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
-          <line>428</line>
+          <line>434</line>
           <option name="timeStamp" value="299" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py</url>
-          <line>364</line>
-          <option name="timeStamp" value="301" />
+          <url>file://$PROJECT_DIR$/img_inference.py</url>
+          <line>7</line>
+          <option name="timeStamp" value="305" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/apis/inference.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="306" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
+          <line>382</line>
+          <option name="timeStamp" value="307" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
+          <line>413</line>
+          <option name="timeStamp" value="308" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/UDA/dacs.py</url>
+          <line>284</line>
+          <option name="timeStamp" value="309" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
+          <line>175</line>
+          <option name="timeStamp" value="310" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
+          <line>149</line>
+          <option name="timeStamp" value="314" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/segmentors/encoder_decoder.py</url>
+          <line>341</line>
+          <option name="timeStamp" value="316" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/decode_head.py</url>
+          <line>353</line>
+          <option name="timeStamp" value="317" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py</url>
-          <line>354</line>
-          <option name="timeStamp" value="302" />
+          <line>345</line>
+          <option name="timeStamp" value="318" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/aspp_head.py</url>
+          <line>385</line>
+          <option name="timeStamp" value="319" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/decode_heads/hyper_hrc_head.py</url>
+          <line>360</line>
+          <option name="timeStamp" value="321" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mmseg/models/UDA/uda_decorator.py</url>
+          <line>108</line>
+          <option name="timeStamp" value="322" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/embedding_visualizer.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="327" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
