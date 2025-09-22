@@ -50,6 +50,7 @@ for cls in unique_class:
         # indices = torch.randperm(len(cls_features))[:samples_per_class]
         cls_features = cls_features[indices]
 
+
     sampled_features.append(cls_features)
     sampled_labels.extend([cls.item()] * len(cls_features))
 
@@ -90,14 +91,21 @@ cbar.ax.tick_params(labelsize=9)
 for label in cbar.ax.get_yticklabels():
     label.set_rotation(0)
 
+for cls in unique_class:
+    if cls == 255:
+        continue
+    center = np.mean(features_tsne[sampled_labels == cls], axis=0)
+    plt.text(center[0], center[1], labels_names[cls.item()], fontsize=9, ha='center', va='center', bbox=dict(boxstyle='round,pad=0.3',alpha=0.7))
+
 
 plt.xlabel('t-SNE Dimension 1')
 plt.ylabel('t-SNE Dimension 2')
 plt.grid(True)
 
 # 保存图像
-plt.savefig('tsne_better.png', dpi=300, bbox_inches='tight')
+plt.savefig('tsne_better_center.png', dpi=300, bbox_inches='tight')
 plt.show()
+plt.close()
 
 
 
