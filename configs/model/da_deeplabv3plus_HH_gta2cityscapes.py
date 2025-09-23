@@ -20,6 +20,8 @@ data_preprocessor = dict(
 
 
 model = dict(
+    pretrained='open-mmlab://resnet101_v1c',
+    backbone=dict(depth=101),
     data_preprocessor=data_preprocessor,
     decode_head=dict(type='DepthwiseSeparableASPPHead_HH',
                      tree_params={'i2c':'data/cityscapes/cityscapes_i2c.txt',

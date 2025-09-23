@@ -42,3 +42,32 @@ runner = Runner.from_cfg(config)
 # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
 runner.test()
 
+# # 首先是DA实验部分
+# config = Config.fromfile('configs/model/da_deeplabv3plus_gta2cityscapes.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()
+#
+# config = Config.fromfile('configs/model/da_deeplabv3plus_HH_gta2cityscapes.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()
+#
+# # 接下来是对层级结构进行消融实验
+# # 无层级结构
+# config = Config.fromfile('configs/model/daformer_mitb5_b2_gta-512x512.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()
+#
+# # 原始层级结构
+# config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()
+#
+# # 显示学习的层级结构
+# config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
+# runner = Runner.from_cfg(config)
+# # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
+# runner.train()

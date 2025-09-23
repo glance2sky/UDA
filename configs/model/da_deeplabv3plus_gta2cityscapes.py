@@ -20,6 +20,8 @@ data_preprocessor = dict(
     test_cfg=dict(size_divisor=32))
 
 model = dict(
+    pretrained='open-mmlab://resnet101_v1c',
+    backbone=dict(depth=101),
     data_preprocessor=data_preprocessor,
 )
 
