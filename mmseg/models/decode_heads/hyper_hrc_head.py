@@ -23,6 +23,8 @@ from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
 from mmseg.utils import ConfigType, SampleList, add_prefix
 
 from mmengine.logging import MessageHub
+from mmseg.visualization.hyper_hierarchy_visualizer import HHLocalVisualizer
+
 
 PROJ_EPS = 1e-3
 class ASPPWrapper(nn.Module):
@@ -274,9 +276,13 @@ class HHHead(BaseDecodeHead):
         self.c = c
         # self.hyper_mlr = HyperMLR(512,self.tree.M, c=c)
         self.hyper_mlr = HyperMLR(512, self.tree.M, c=c) # for test
-        self.save_feature = True
+        self.save_feature = False
 
         self.message_hub = MessageHub.get_current_instance()
+
+        self.visualize = True
+        if self.visualize:
+            self.visualizer = HHLocalVisualizer.get_current_instance()
 
 
     def embedding_norm(self, x, min_scale=0.1, max_scale=0.9):
@@ -665,6 +671,20 @@ class HHHead(BaseDecodeHead):
 
         h_labels = self.generate_hrc_labels(seg_label)
         new_batch_data = self.reflect_labels_logits(seg_logits, h_labels)
+
+        if self.visualize:
+            if 'gta' in batch_data_samples[0].img_path:
+                debug_name = 'source_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+            else:
+                debug_name = 'mix_hierarchy_img_{}'.format(self.message_hub.get_info('iter'))
+
+            self.visualizer.draw_hierarchy_map(name=debug_name,
+                                               image=batch_data_samples[0].ori_img,
+                                               # image = None,
+                                               batch_data=new_batch_data,
+                                               hierarchy_classes=self.tree.hie_classes_name,
+                                               draw_gt=True,
+                                               draw_pred=True)
         for i, data in enumerate(new_batch_data):
             seg_logits = data[0]
             seg_label = data[1]

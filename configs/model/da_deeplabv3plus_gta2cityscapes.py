@@ -20,8 +20,8 @@ data_preprocessor = dict(
     test_cfg=dict(size_divisor=32))
 
 model = dict(
-    pretrained='open-mmlab://resnet101_v1c',
-    backbone=dict(depth=101),
+    # pretrained='open-mmlab://resnet101_v1c',
+    # backbone=dict(depth=101),
     data_preprocessor=data_preprocessor,
 )
 
@@ -77,3 +77,4 @@ custom_hooks = [dict(type='DebugVisualizationHook')]
 # load_from = 'workdir/uda_hierarchy3_rcs_crop_grad_accum_hloss/best_mIoU_iter_34000.pth'
 # load_from = 'workdir/uda_hierarchy2_rcs_crop_grad_accum/best_mIoU_iter_9000.pth'
 # load_from = 'workdir/best_69.33/best_mIoU_iter_51000.pth'
+load_from = 'workdir/da_deeplabv3plus/best_mIoU_iter_31000.pth'

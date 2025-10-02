@@ -54,7 +54,7 @@ from torchvision import transforms
 
 from mmseg.utils.uda_transforms import (denorm, get_class_masks,
                                                 get_mean_std, strong_transform, downscale_label_ratio)
-
+from mmseg.visualization.hyper_hierarchy_visualizer import HHLocalVisualizer
 
 
 def _params_equal(ema_model, model):
@@ -137,6 +137,11 @@ class DACS(UDADecorator):
             self.imnet_model = build_segmentor(fea_cfg)
         else:
             self.imnet_model = None
+
+
+        self.visualize = True
+        if self.visualize:
+            self.visualizer = HHLocalVisualizer.get_current_instance()
 
         # self.transforms = transforms.Normalize(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375])
     def get_model(self):
@@ -330,6 +335,18 @@ class DACS(UDADecorator):
 
 
         losses.update(add_prefix(target_loss_decode, 'mix'))
+
+        if self.visualize:
+            if self.message_hub.get_info('iter') % self.message_hub.get_info('debug_iter') == 0:
+                s_t_img = torch.cat((source_data['inputs'][0], target_data['inputs'][0]), dim=1)
+                s_t_img = self.visualizer.return_add_datasample(image=s_t_img,
+                                                                draw_gt=False,
+                                                                draw_pred=False)
+                self.visualizer.add_datasample(name='target_mix_{}'.format(self.message_hub.get_info('iter')),
+                                               image=s_t_img,
+                                               draw_gt=False,
+                                               draw_pred=False)
+
         return losses
 
 
@@ -375,7 +392,10 @@ class DACS(UDADecorator):
 
         debug_class = [18, 12, 17, 16, 7, 6]
 
-
+        if self.visualize:
+            for i in range(len(source_data['data_samples'])):
+                source_data['data_samples'][i].set_data({'ori_img': source_data['inputs'][i]})
+                target_data['data_samples'][i].set_data({'ori_img': target_data['inputs'][i]})
 
         source_data = self.data_preprocessor(source_data, True)
 

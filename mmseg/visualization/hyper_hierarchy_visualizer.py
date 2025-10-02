@@ -21,7 +21,7 @@ from mmseg.utils import get_classes, get_palette
 from mmseg.visualization.local_visualizer import SegLocalVisualizer
 # from mmseg.models.utils import resize
 
-from lib.geoopt.manifolds.lorentz.math import lorentz_to_poincare, poincare_to_lorentz
+# from lib.geoopt.manifolds.lorentz.math import lorentz_to_poincare, poincare_to_lorentz
 
 
 class GradientMonitor:
@@ -100,7 +100,7 @@ class HHLocalVisualizer(SegLocalVisualizer):
                  classes: Optional[List] = None,
                  palette: Optional[List] = None,
                  dataset_name: Optional[str] = None,
-                 alpha: float = 0.8,
+                 alpha: float = 1,
                  **kwargs):
         super().__init__(name, image, vis_backends, save_dir, classes, palette, dataset_name, alpha, **kwargs)
 
@@ -347,61 +347,61 @@ class HHLocalVisualizer(SegLocalVisualizer):
 
 
 
-    def visualize_hyperbolic(self, i2c=None, manifold=None, poincare=False):
-        """ Plots hyperbolic data on Poincaré ball and tangent space
-
-        Note: This function only supports curvature k=1.
-        """
-
-        data = self.temp_embedding
-        labels = self.temp_label
-        if i2c is not None:
-            labels = [int(i) for i in labels if i != 255]
-        fig = plt.figure(figsize=(14, 7))
-
-        # 2D embeddings
-        if (data.shape[-1] == 2 and poincare) or (data.shape[-1] == 3 and not poincare):
-            if poincare:
-                data_P = data.cpu()
-            else:
-                data_P = lorentz_to_poincare(data, k=manifold.k).cpu()
-        # Dimensionality reduction to 2D
-        else:
-            if poincare:
-                data = poincare_to_lorentz(data.to(manifold.c.device), manifold.c)
-            reducer = umap.UMAP(output_metric='hyperboloid')
-            data = reducer.fit_transform(data.cpu().numpy())
-            data = manifold.add_time(torch.tensor(data).to(manifold.c.device))
-            data_P = lorentz_to_poincare(data, k=manifold.c).cpu()
-
-        ax = fig.add_subplot(1, 2, 1)
-        plt.scatter(data_P[:, 0], data_P[:, 1], c=labels, s=20)
-        # Draw Poincaré boundary
-        boundary = plt.Circle((0, 0.75), 0.5, color='k', fill=False)
-        ax.add_patch(boundary)
-
-        ax.set_xlim([-1, 1])
-        ax.set_ylim([-1, 1])
-        ax.set_aspect('equal', adjustable='box')
-
-        plt.colorbar()
-        plt.xlabel("$z_0$")
-        plt.ylabel("$z_1$")
-        ax.set_title("Poincaré Ball")
-
-        # Plot hyperbolic embeddings in tangent space of the origin
-        if poincare:
-            z_all_T = (manifold.logmap0(data_P.to('cuda'))).detach().cpu()
-        else:
-            z_all_T = (manifold.logmap0(data)).detach().cpu()
-            z_all_T = z_all_T[..., 1:]
-
-        ax = fig.add_subplot(1, 2, 2)
-        plt.scatter(z_all_T[:, 0], z_all_T[:, 1], c=labels, s=1)
-        ax.set_aspect('equal', adjustable='box')
-        plt.colorbar()
-        plt.xlabel("$z_0$")
-        plt.ylabel("$z_1$")
-        ax.set_title("Tangent Space")
-
-        return fig
+    # def visualize_hyperbolic(self, i2c=None, manifold=None, poincare=False):
+    #     """ Plots hyperbolic data on Poincaré ball and tangent space
+    #
+    #     Note: This function only supports curvature k=1.
+    #     """
+    #
+    #     data = self.temp_embedding
+    #     labels = self.temp_label
+    #     if i2c is not None:
+    #         labels = [int(i) for i in labels if i != 255]
+    #     fig = plt.figure(figsize=(14, 7))
+    #
+    #     # 2D embeddings
+    #     if (data.shape[-1] == 2 and poincare) or (data.shape[-1] == 3 and not poincare):
+    #         if poincare:
+    #             data_P = data.cpu()
+    #         else:
+    #             data_P = lorentz_to_poincare(data, k=manifold.k).cpu()
+    #     # Dimensionality reduction to 2D
+    #     else:
+    #         if poincare:
+    #             data = poincare_to_lorentz(data.to(manifold.c.device), manifold.c)
+    #         reducer = umap.UMAP(output_metric='hyperboloid')
+    #         data = reducer.fit_transform(data.cpu().numpy())
+    #         data = manifold.add_time(torch.tensor(data).to(manifold.c.device))
+    #         data_P = lorentz_to_poincare(data, k=manifold.c).cpu()
+    #
+    #     ax = fig.add_subplot(1, 2, 1)
+    #     plt.scatter(data_P[:, 0], data_P[:, 1], c=labels, s=20)
+    #     # Draw Poincaré boundary
+    #     boundary = plt.Circle((0, 0.75), 0.5, color='k', fill=False)
+    #     ax.add_patch(boundary)
+    #
+    #     ax.set_xlim([-1, 1])
+    #     ax.set_ylim([-1, 1])
+    #     ax.set_aspect('equal', adjustable='box')
+    #
+    #     plt.colorbar()
+    #     plt.xlabel("$z_0$")
+    #     plt.ylabel("$z_1$")
+    #     ax.set_title("Poincaré Ball")
+    #
+    #     # Plot hyperbolic embeddings in tangent space of the origin
+    #     if poincare:
+    #         z_all_T = (manifold.logmap0(data_P.to('cuda'))).detach().cpu()
+    #     else:
+    #         z_all_T = (manifold.logmap0(data)).detach().cpu()
+    #         z_all_T = z_all_T[..., 1:]
+    #
+    #     ax = fig.add_subplot(1, 2, 2)
+    #     plt.scatter(z_all_T[:, 0], z_all_T[:, 1], c=labels, s=1)
+    #     ax.set_aspect('equal', adjustable='box')
+    #     plt.colorbar()
+    #     plt.xlabel("$z_0$")
+    #     plt.ylabel("$z_1$")
+    #     ax.set_title("Tangent Space")
+    #
+    #     return fig

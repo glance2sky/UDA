@@ -40,13 +40,14 @@ from mmseg.registry import DATASETS
 config = Config.fromfile('configs/model/uda_daformer_HHHead_gta2cityscapes512.py')
 runner = Runner.from_cfg(config)
 # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
-runner.test()
+runner.train()
 
-# # 首先是DA实验部分
-# config = Config.fromfile('configs/model/da_deeplabv3plus_gta2cityscapes.py')
+# 首先是DA实验部分
+# config = Config.fromfile('workdir/da_deeplabv3plus/vis_data/config.py')
+# config._cfg_dict.load_from = 'workdir/da_deeplabv3plus/best_mIoU_iter_31000.pth'
 # runner = Runner.from_cfg(config)
 # # runner.load_checkpoint('workdir/DAformer_HHHead_zero_shot2/best_mIoU_iter_10000.pth', revise_keys=[(r'^', 'model.')])
-# runner.train()
+# runner.test()
 #
 # config = Config.fromfile('configs/model/da_deeplabv3plus_HH_gta2cityscapes.py')
 # runner = Runner.from_cfg(config)

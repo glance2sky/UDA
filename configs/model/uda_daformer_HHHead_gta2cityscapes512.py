@@ -73,6 +73,10 @@ data_preprocessor = dict(
 
 custom_hooks = [dict(type='DebugVisualizationHook')]
 
+
+visualizer = dict(
+    type='HHLocalVisualizer',
+)
 # visualizer = dict(
 #     type='Visualizer',
 #     vis_backends=[dict(type='TensorboardVisBackend')]
